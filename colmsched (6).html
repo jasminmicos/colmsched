@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ColmSched — Classroom Scheduling Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --ink:#0e1a15;
+  --panel:#122019;
+  --panel2:#17271f;
+  --line:#25392f;
+  --green-950:#08150f;
+  --green-800:#0f3d29;
+  --green-700:#166438;
+  --green-600:#1c8548;
+  --green-500:#22a35a;
+  --green-400:#3fc37a;
+  --mint:#eafaf1;
+  --paper:#fbfaf7;
+  --text:#122019;
+  --muted:#5d6f66;
+  --white:#ffffff;
+  --danger:#c0392b;
+  --radius:14px;
+  --font-head:'Poppins',sans-serif;
+  --font-body:'Inter',sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:var(--font-body);
+  color:var(--text);
+  background:var(--paper);
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;}
+input,select{font-family:inherit;}
+::selection{background:var(--green-400);color:#08150f;}
+
+/* ---------- utility ---------- */
+.hidden{display:none !important;}
+.btn{
+  border:none;border-radius:10px;padding:11px 20px;font-weight:600;font-size:14.5px;
+  transition:transform .12s ease, box-shadow .12s ease; letter-spacing:.1px;
+}
+.btn:active{transform:translateY(1px);}
+.btn-primary{background:var(--green-700);color:#fff;box-shadow:0 6px 16px -6px rgba(22,100,56,.55);}
+.btn-primary:hover{background:var(--green-600);}
+.btn-ghost{background:transparent;color:var(--green-700);border:1.5px solid var(--line);}
+.btn-ghost:hover{border-color:var(--green-600);color:var(--green-600);}
+.btn-danger{background:#fdecea;color:var(--danger);}
+.btn-danger:hover{background:#fbdedb;}
+.btn-sm{padding:6px 12px;font-size:13px;border-radius:8px;}
+.pill{display:inline-block;padding:3px 11px;border-radius:99px;font-size:12px;font-weight:600;background:var(--mint);color:var(--green-700);}
+
+/* ================= LOGIN ================= */
+#view-login{
+  min-height:100vh;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--paper);
+}
+.blob{position:absolute;border-radius:50%;background:var(--green-800);opacity:.95;}
+.blob.b1{width:520px;height:520px;top:-220px;left:-220px;}
+.blob.b2{width:380px;height:380px;bottom:-200px;right:-160px;}
+.blob.b3{width:60px;height:60px;bottom:120px;left:80px;background:var(--green-500);}
+.login-card{
+  position:relative;z-index:2;width:400px;max-width:92vw;
+  background:var(--white);border-radius:20px;padding:38px 34px 32px;
+  box-shadow:0 30px 60px -20px rgba(8,21,15,.35);
+}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+.brand-mark{width:38px;height:38px;border-radius:10px;background:var(--green-700);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-head);font-weight:800;font-size:18px;}
+.brand-word{font-family:var(--font-head);font-weight:700;font-size:19px;color:var(--green-800);letter-spacing:.2px;}
+.brand-sub{font-size:11px;color:var(--muted);letter-spacing:.3px;margin-top:-2px;}
+h1.login-h{font-family:var(--font-head);font-size:23px;margin:4px 0 4px;color:var(--ink);}
+.login-p{color:var(--muted);font-size:13.5px;margin:0 0 22px;}
+.field{margin-bottom:15px;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:6px;}
+.field input,.field select{
+  width:100%;padding:11px 13px;border:1.5px solid #e3e8e4;border-radius:10px;font-size:14.5px;
+  background:#f8faf8;outline:none;transition:border-color .15s;
+}
+.field input:focus,.field select:focus{border-color:var(--green-500);background:#fff;}
+.pw-wrap{position:relative;}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:12px;color:var(--muted);}
+.login-links{display:flex;justify-content:flex-end;margin:-6px 0 18px;}
+.login-links a{font-size:12.5px;color:var(--green-700);text-decoration:none;font-weight:600;cursor:pointer;}
+.login-links a:hover{text-decoration:underline;}
+.full{width:100%;}
+.institution-tag{margin-top:22px;text-align:center;font-size:11px;color:var(--muted);line-height:1.5;}
+.demo-note{margin-top:14px;background:var(--mint);border-radius:10px;padding:10px 12px;font-size:11.5px;color:var(--green-800);line-height:1.5;}
+.demo-note b{color:var(--green-700);}
+
+/* ================ APP SHELL ================ */
+#app{display:none;min-height:100vh;}
+#app.active{display:flex;}
+.sidebar{
+  width:74px;background:var(--green-950);display:flex;flex-direction:column;align-items:center;
+  padding:20px 0;gap:8px;flex-shrink:0;
+}
+.side-logo{width:38px;height:38px;border-radius:10px;background:var(--green-600);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-head);font-weight:800;font-size:17px;margin-bottom:18px;}
+.side-btn{
+  width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:#7fa992;
+  display:flex;align-items:center;justify-content:center;transition:.15s;position:relative;
+}
+.side-btn svg{width:19px;height:19px;}
+.side-btn:hover{color:#eafaf1;}
+.side-btn.active{background:var(--green-600);color:#fff;}
+.side-btn .tip{
+  position:absolute;left:56px;background:var(--ink);color:#fff;padding:5px 10px;border-radius:6px;
+  font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;transition:.15s;top:50%;transform:translateY(-50%) translateX(-4px);
+}
+.side-btn:hover .tip{opacity:1;transform:translateY(-50%) translateX(0);}
+.side-spacer{flex:1;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{
+  height:66px;flex-shrink:0;background:#fff;border-bottom:1px solid #ecefec;
+  display:flex;align-items:center;justify-content:space-between;padding:0 28px;
+}
+.topbar h2{font-family:var(--font-head);font-size:19px;margin:0;color:var(--ink);}
+.topbar .sub{font-size:12.5px;color:var(--muted);}
+.user-chip{display:flex;align-items:center;gap:10px;}
+.user-chip .role{font-size:12px;color:var(--muted);text-align:right;}
+.user-chip .role b{display:block;color:var(--ink);font-size:13.5px;}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--green-700);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;font-family:var(--font-head);}
+.logout-btn{background:none;border:none;color:var(--muted);padding:6px;border-radius:8px;}
+.logout-btn:hover{background:#f4f6f4;color:var(--danger);}
+.content{flex:1;overflow-y:auto;padding:26px 30px 60px;}
+
+/* cards & tables */
+.grid-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:22px;}
+.stat-card{background:#fff;border:1px solid #ecefec;border-radius:var(--radius);padding:18px 20px;}
+.stat-card .num{font-family:var(--font-head);font-size:30px;font-weight:700;color:var(--green-700);}
+.stat-card .lbl{font-size:12.5px;color:var(--muted);margin-top:2px;}
+.card{background:#fff;border:1px solid #ecefec;border-radius:var(--radius);padding:22px;margin-bottom:20px;}
+.card h3{margin:0 0 16px;font-family:var(--font-head);font-size:16px;color:var(--ink);}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.card-head h3{margin:0;}
+.toolbar{display:flex;gap:10px;align-items:center;}
+.search-box{position:relative;}
+.search-box input{padding:9px 12px 9px 34px;border:1.5px solid #e3e8e4;border-radius:9px;font-size:13.5px;width:220px;background:#f8faf8;}
+.search-box svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted);}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px;}
+.form-grid .field{margin-bottom:0;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th{text-align:left;padding:10px 12px;background:#f3f7f4;color:var(--green-800);font-weight:600;font-size:12.5px;border-bottom:1px solid #e3e8e4;white-space:nowrap;}
+td{padding:9px 12px;border-bottom:1px solid #f0f2f0;color:var(--ink);}
+tr:last-child td{border-bottom:none;}
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid #ecefec;}
+.empty-row td{text-align:center;color:var(--muted);padding:26px;font-style:italic;}
+.tag{display:inline-block;padding:2px 9px;border-radius:6px;font-size:11.5px;font-weight:600;}
+.tag-green{background:var(--mint);color:var(--green-700);}
+.tag-gray{background:#f0f2f0;color:var(--muted);}
+
+/* schedule grid */
+.sched-table th, .sched-table td{text-align:center;font-size:12.5px;}
+.sched-table th:first-child, .sched-table td:first-child{text-align:left;white-space:nowrap;font-weight:600;color:var(--muted);}
+.sched-cell{background:var(--mint);border-radius:8px;padding:6px 8px;font-size:11.5px;line-height:1.35;}
+.sched-cell b{display:block;color:var(--green-800);font-size:12px;}
+.sched-cell .del-x{float:right;cursor:pointer;color:var(--danger);font-weight:800;margin-left:4px;}
+.clock-box{text-align:center;padding:50px 20px;}
+.clock-time{font-family:var(--font-head);font-size:58px;font-weight:700;color:var(--green-800);letter-spacing:1px;}
+.clock-date{font-size:15px;color:var(--muted);margin-top:6px;}
+
+/* bar chart (css only) */
+.barchart{display:flex;align-items:flex-end;gap:18px;height:180px;padding:10px 6px 0;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+.bar{width:100%;max-width:46px;background:linear-gradient(180deg,var(--green-500),var(--green-800));border-radius:6px 6px 2px 2px;transition:height .4s ease;}
+.bar-lbl{margin-top:8px;font-size:11.5px;color:var(--muted);text-align:center;}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(8,21,15,.55);display:flex;align-items:center;justify-content:center;z-index:100;}
+.modal{background:#fff;border-radius:16px;padding:28px;width:380px;max-width:90vw;}
+.modal h3{margin:0 0 6px;font-family:var(--font-head);}
+.modal p{font-size:13.5px;color:var(--muted);margin:0 0 18px;}
+.modal-actions{display:flex;gap:10px;margin-top:18px;}
+.otp-boxes{display:flex;gap:8px;margin-bottom:18px;}
+.otp-boxes input{width:44px;height:52px;text-align:center;font-size:20px;border-radius:10px;border:1.5px solid #e3e8e4;background:#f8faf8;}
+
+/* toast */
+#toast-stack{position:fixed;bottom:22px;right:22px;z-index:200;display:flex;flex-direction:column;gap:10px;}
+.toast{background:var(--ink);color:#fff;padding:13px 18px;border-radius:10px;font-size:13.5px;box-shadow:0 12px 28px -8px rgba(0,0,0,.4);
+  max-width:340px;animation:toastin .25s ease;}
+.toast.err{background:#5c2320;}
+.toast.ok{background:var(--green-700);}
+@keyframes toastin{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* room availability UI */
+.room-cards-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px;}
+.room-card{border:1.5px solid #e3e8e4;border-radius:12px;padding:14px 18px;min-width:160px;flex-shrink:0;cursor:pointer;background:#fff;transition:.15s;}
+.room-card:hover{border-color:var(--green-500);}
+.room-card.active{border-color:var(--green-600);background:var(--mint);box-shadow:0 4px 14px -6px rgba(22,100,56,.3);}
+.room-card .rname{font-weight:700;font-size:14.5px;color:var(--ink);}
+.room-card .rmeta{font-size:11.5px;color:var(--muted);margin-top:3px;}
+.day-pills{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.day-pill{padding:8px 18px;border-radius:99px;border:1.5px solid #e3e8e4;background:#fff;font-size:13px;font-weight:600;color:var(--muted);transition:.15s;}
+.day-pill:hover{border-color:var(--green-500);color:var(--green-700);}
+.day-pill.active{background:var(--green-700);color:#fff;border-color:var(--green-700);}
+.avail-status-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.avail-status-dot{width:9px;height:9px;border-radius:50%;background:var(--green-500);}
+.avail-status-dot.busy{background:var(--danger);}
+.timeline{display:flex;flex-direction:column;gap:8px;}
+.avail-row{display:flex;gap:16px;align-items:center;padding:13px 16px;border-radius:11px;}
+.avail-row.busy{background:var(--mint);border-left:4px solid var(--green-600);}
+.avail-row.free{background:#fafbf9;border:1.5px dashed #dde3de;color:var(--muted);}
+.avail-time{width:170px;flex-shrink:0;font-weight:600;font-size:13px;color:var(--ink);}
+.avail-row.free .avail-time{color:var(--muted);}
+.avail-info{font-size:13.5px;flex:1;}
+.avail-info b{color:var(--green-800);}
+/* fixed calendar-style week grid */
+.wk{border:1px solid #e3e8e4;border-radius:12px;overflow:auto;max-height:640px;background:#fff;scrollbar-gutter:stable;}
+.wk-inner{min-width:780px;}
+.wk-head,.wk-body{display:grid;grid-template-columns:72px repeat(var(--n,6),minmax(0,1fr));}
+.wk-head{position:sticky;top:0;z-index:5;background:#f3f7f4;border-bottom:1px solid #e3e8e4;}
+.wk-head div{padding:10px 6px;text-align:center;font-weight:600;font-size:12.5px;color:var(--green-800);border-left:1px solid #e3e8e4;}
+.wk-head div:first-child{border-left:none;}
+.wk-times div{height:var(--rh);box-sizing:border-box;padding:3px 8px 0;font-size:10.5px;color:var(--muted);border-top:1px solid #eef1ee;white-space:nowrap;}
+.wk-col{position:relative;border-left:1px solid #e3e8e4;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--rh) - 1px),#eef1ee calc(var(--rh) - 1px),#eef1ee var(--rh));}
+.wk-col.editable{cursor:cell;}
+.wk-col.editable:hover{background-color:#fafdfb;}
+.wk-ev{position:absolute;box-sizing:border-box;overflow:hidden;background:var(--mint);border-left:4px solid var(--green-600);border-radius:8px;padding:3px 7px;font-size:11px;line-height:1.3;color:var(--ink);box-shadow:0 1px 2px rgba(8,21,15,.08);}
+.wk-ev b{display:block;color:var(--green-800);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wk-ev span{display:block;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wk-ev.editable{cursor:pointer;}
+.wk-ev.editable:hover{background:#d8f3e4;}
+.avail-row.clickable{cursor:pointer;transition:.12s;}
+.avail-row.busy.clickable:hover{background:#d8f3e4;}
+.avail-row.free.clickable:hover{border-color:var(--green-500);color:var(--green-700);background:#f4fbf7;}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--mint);color:var(--green-800);border-radius:99px;padding:4px 6px 4px 11px;font-size:12px;font-weight:600;margin:2px 6px 2px 0;cursor:pointer;}
+.chip:hover{background:#d8f3e4;}
+.chip i{font-style:normal;font-weight:500;color:var(--muted);}
+.chip .x{color:var(--danger);font-weight:800;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;}
+.chip .x:hover{background:#fbdedb;}
+.inline-add{display:grid;grid-template-columns:150px 1fr auto;gap:12px;align-items:end;margin-top:16px;padding-top:16px;border-top:1px dashed #dde3de;}
+.inline-add .field{margin-bottom:0;}
+.modal{max-height:90vh;overflow-y:auto;}
+.wk.full{max-height:none;overflow:visible;}
+.filter-bar{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-end;background:#f6faf7;border:1px solid #e3ece6;border-radius:12px;padding:12px 16px;margin-bottom:16px;}
+.fgroup{display:flex;flex-direction:column;gap:6px;}
+.fcap{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--green-700);}
+.frow{display:flex;gap:10px;flex-wrap:wrap;}
+.filter-bar .field{margin-bottom:0;min-width:140px;}
+.filter-bar .field label{font-size:11.5px;color:var(--muted);font-weight:500;margin-bottom:4px;}
+.filter-bar .field select{padding:8px 10px;font-size:13px;}
+.filter-bar .reset{margin-left:auto;}
+.report-page{margin-bottom:22px;}
+.rp-inst{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.6px;text-transform:uppercase;}
+.rp-head h2{font-family:var(--font-head);font-size:18px;margin:4px 0 2px;color:var(--ink);}
+.rp-meta{font-size:12.5px;color:var(--muted);margin-bottom:14px;}
+@media print{
+  @page{size:A4 landscape;margin:9mm;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  html,body{height:auto !important;background:#fff;}
+  .sidebar,.topbar,#toast-stack,.no-print,.modal-bg{display:none !important;}
+  #app.active{display:block !important;min-height:0;}
+  .main{display:block;} .content{overflow:visible !important;padding:0 !important;height:auto;}
+  .report-page{border:none;padding:0;margin:0;break-after:page;page-break-after:always;}
+  .report-page:last-child{break-after:auto;page-break-after:auto;}
+  .rp-head h2{font-size:16px;} .rp-meta{margin-bottom:8px;}
+  .wk{--rh:21px !important;max-height:none;overflow:visible;border:1px solid #9aa89f;border-radius:0;}
+  .wk-inner{min-width:0 !important;}
+  .wk-head div{padding:5px 4px;font-size:10.5px;}
+  .wk-times div{font-size:7.5px;padding:2px 4px 0;}
+  .wk-ev{font-size:8.5px;line-height:1.22;padding:1px 4px;} .wk-ev b{font-size:9px;}
+}
+.conflict-box{background:#fdecea;border:1px solid #f5c6c1;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#7c261c;}
+.conflict-box b{display:block;margin-bottom:4px;}
+.note{font-size:12px;color:var(--muted);margin-top:8px;}
+@media(max-width:760px){
+  .sidebar{width:60px;}
+  .content{padding:18px 14px;}
+  .form-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="view-login">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div>
+        <div class="brand-word">COLM · SCHED</div>
+        <div class="brand-sub">Classroom Scheduling System</div>
+      </div>
+    </div>
+    <h1 class="login-h">Welcome back</h1>
+    <p class="login-p">Select your role and enter your credentials to continue.</p>
+    <div class="field">
+      <label>Role</label>
+      <select id="login-role">
+        <option value="admin">Administrator</option>
+        <option value="faculty">Faculty Member</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Username</label>
+      <input id="login-username" placeholder="e.g. admin">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input id="login-password" type="password" placeholder="Enter password">
+        <button class="pw-toggle" onclick="togglePw('login-password',this)">Show</button>
+      </div>
+    </div>
+    <div class="login-links"><a onclick="openForgot()">Forgot password?</a></div>
+    <button class="btn btn-primary full" onclick="doLogin()">Log in</button>
+    <div class="demo-note">
+      <b>Demo accounts</b> — Admin: <b>admin</b> / <b>admin123</b> &nbsp;·&nbsp; Faculty: <b>jsantos</b> / <b>faculty123</b>
+      <i>Note: This is a demo system created to gather insights based on the client's needs — all information shown is dummy data.</i>
+    </div>
+    <div class="institution-tag">College of Our Lady of Mercy of Pulilan Foundation, Inc.<br>Longos, Pulilan, Bulacan</div>
+  </div>
+</div>
+
+<!-- ============ FORGOT PASSWORD MODAL ============ -->
+<div id="modal-forgot" class="modal-bg hidden">
+  <div class="modal">
+    <div id="forgot-step-email">
+      <h3>Forgot password</h3>
+      <p>Enter your username. A one-time password (OTP) will be sent to your registered email.</p>
+      <div class="field"><label>Username</label><input id="forgot-username" placeholder="e.g. admin"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost full" onclick="closeForgot()">Cancel</button>
+        <button class="btn btn-primary full" onclick="sendOtp()">Send code</button>
+      </div>
+    </div>
+    <div id="forgot-step-otp" class="hidden">
+      <h3>Verify email</h3>
+      <p>Please check your email to verify your code.</p>
+      <div class="otp-boxes">
+        <input maxlength="1" class="otp-d"><input maxlength="1" class="otp-d">
+        <input maxlength="1" class="otp-d"><input maxlength="1" class="otp-d">
+      </div>
+      <div id="forgot-resend" class="note">Didn't receive a code? <a onclick="sendOtp(true)" style="color:var(--green-700);cursor:pointer;font-weight:600;">Resend</a></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost full" onclick="closeForgot()">Cancel</button>
+        <button class="btn btn-primary full" onclick="verifyOtp()">Verify</button>
+      </div>
+    </div>
+    <div id="forgot-step-reset" class="hidden">
+      <h3>Reset your password</h3>
+      <p>Please set a new password for your account.</p>
+      <div class="field"><label>New password</label><input id="forgot-pw1" type="password" placeholder="New password"></div>
+      <div class="field"><label>Confirm password</label><input id="forgot-pw2" type="password" placeholder="Confirm password"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost full" onclick="closeForgot()">Cancel</button>
+        <button class="btn btn-primary full" onclick="resetPassword()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GENERIC FORM MODAL ============ -->
+<div id="modal-form" class="modal-bg hidden">
+  <div class="modal">
+    <h3 id="fm-title"></h3>
+    <div id="fm-error"></div>
+    <div id="fm-fields"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeFormModal()">Cancel</button>
+      <button id="fm-save" class="btn btn-primary full" onclick="submitFormModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ADD / EDIT SCHEDULE MODAL (admin only) ============ -->
+<div id="modal-schedule" class="modal-bg hidden">
+  <div class="modal">
+    <h3 id="sched-modal-title">Add class schedule</h3>
+    <div id="sched-modal-conflict"></div>
+    <div class="field"><label>Day</label><select id="sm-day"></select></div>
+    <div class="field"><label>Time start</label><select id="sm-start"></select></div>
+    <div class="field"><label>Time end</label><select id="sm-end"></select></div>
+    <div id="sm-ss"></div>
+    <div class="field"><label>Room</label><select id="sm-room"></select></div>
+    <div class="field"><label>Instructor</label><select id="sm-instr"></select></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSchedModal()">Cancel</button>
+      <button id="sm-delete-btn" class="btn btn-danger hidden" onclick="deleteFromModal()">Delete</button>
+      <button class="btn btn-primary full" onclick="saveScheduleModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="page-title">Dashboard</h2>
+        <div class="sub" id="page-sub">Overview</div>
+      </div>
+      <div class="user-chip">
+        <div class="role"><b id="chip-name">—</b><span id="chip-role">—</span></div>
+        <div class="avatar" id="chip-avatar">A</div>
+        <button class="logout-btn" title="Log out" onclick="doLogout()">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div id="toast-stack"></div>
+
+<script>
+/* ============================================================
+   COLM · SCHED — front-end prototype
+   Data layer: localStorage (simulates the MySQL/PHP backend
+   described in the paper's conceptual framework, so the whole
+   system runs standalone in the browser).
+============================================================ */
+const DB_KEY = 'colmsched_db_v1';
+const SESSION_KEY = 'colmsched_session_v1';
+
+const TIME_SLOTS = (()=>{
+  const arr=[]; let start=7*60;
+  const end=20*60;
+  const fmt=m=>{let h=Math.floor(m/60),mi=m%60;const ap=h>=12?'PM':'AM';let h12=h%12; if(h12===0)h12=12;return (h12<10?'0'+h12:h12)+':'+(mi<10?'0'+mi:mi)+' '+ap;};
+  while(start<end){arr.push({start,end:start+30,label:fmt(start)+' - '+fmt(start+30)});start+=30;}
+  return arr;
+})();
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function seedDB(){
+  return {
+    version:2,
+    users:[
+      {id:1, name:'System Administrator', username:'admin', password:'admin123', email:'admin@colm.edu.ph', role:'admin', instructorId:null},
+      {id:2, name:'Juan Santos', username:'jsantos', password:'faculty123', email:'jsantos@colm.edu.ph', role:'faculty', instructorId:1}
+    ],
+    departments:[ {id:1, name:'Computer Studies Department'} ],
+    curriculum:[
+      {id:1, year:2025, period:'1st Semester', level:'1st Year', programCode:'BSIT', courseCode:'CC101', courseName:'Introduction to Computing', lec:2, lab:3, units:3}
+    ],
+    offerings:[ {id:1, deptId:1, code:'BSIT', name:'Bachelor of Science in Information Technology'} ],
+    instructors:[
+      {id:1, first:'Juan', middle:'D.', last:'Santos', graduated:'BS Information Technology', employment:'Full-time', deptId:1},
+      {id:2, first:'Maria', middle:'C.', last:'Reyes', graduated:'BS Computer Science', employment:'Part-time', deptId:1}
+    ],
+    rooms:[
+      {id:1, code:'R-101', name:'Computer Lab 1', location:'2nd Floor, Main Bldg.', level:'2', capacity:40},
+      {id:2, code:'R-102', name:'Computer Lab 2', location:'2nd Floor, Main Bldg.', level:'2', capacity:40},
+      {id:3, code:'R-201', name:'Lecture Room A', location:'3rd Floor, Main Bldg.', level:'3', capacity:50}
+    ],
+    sections:[ {id:1, deptId:1, programId:1, name:'BSIT 1-A', students:38, year:'1st Year'} ],
+    schedules:[ {id:1, day:'Mon', start:8*60, end:9*60+30, subject:'Introduction to Computing', roomId:1, instructorId:1, sectionId:1} ],
+    nextId:{users:3,departments:2,curriculum:2,offerings:2,instructors:3,rooms:4,sections:2,schedules:2}
+  };
+}
+// upgrade data saved by older versions of the prototype
+function migrateDB(db){
+  if((db.version||1)>=2) return db;
+  db.nextId = db.nextId||{};
+  if(!db.departments || !db.departments.length) db.departments=[{id:1,name:'Computer Studies Department'}];
+  db.nextId.departments = Math.max(...db.departments.map(d=>d.id))+1;
+  const d0 = db.departments[0].id;
+  (db.offerings||[]).forEach(o=>{ if(!o.deptId) o.deptId=d0; });
+  (db.instructors||[]).forEach(i=>{ if(!i.deptId) i.deptId=d0; });
+  (db.sections||[]).forEach(s=>{
+    if(!s.programId){
+      const p=(db.offerings||[]).find(o=>o.code===s.department) || (db.offerings||[])[0];
+      s.programId = p? p.id : null; s.deptId = p? p.deptId : d0;
+    }
+  });
+  (db.schedules||[]).forEach(s=>{ if(s.sectionId===undefined) s.sectionId=null; });
+  db.version=2; return db;
+}
+function loadDB(){
+  const raw = localStorage.getItem(DB_KEY);
+  if(!raw){ const db=seedDB(); localStorage.setItem(DB_KEY, JSON.stringify(db)); return db; }
+  try{ const db=migrateDB(JSON.parse(raw)); localStorage.setItem(DB_KEY, JSON.stringify(db)); return db; }
+  catch(e){ const db=seedDB(); localStorage.setItem(DB_KEY, JSON.stringify(db)); return db; }
+}
+function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+let DB = loadDB();
+function nid(kind){ const n = DB.nextId[kind]++; saveDB(DB); return n; }
+
+/* ---------------- toast ---------------- */
+function toast(msg, kind){
+  const el=document.createElement('div');
+  el.className='toast'+(kind?' '+kind:'');
+  el.textContent=msg;
+  document.getElementById('toast-stack').appendChild(el);
+  setTimeout(()=>{el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300);}, 3600);
+}
+function togglePw(id,btn){
+  const inp=document.getElementById(id);
+  if(inp.type==='password'){inp.type='text';btn.textContent='Hide';}else{inp.type='password';btn.textContent='Show';}
+}
+
+/* ---------------- auth ---------------- */
+let CURRENT_USER = null;
+function doLogin(){
+  const role=document.getElementById('login-role').value;
+  const uname=document.getElementById('login-username').value.trim();
+  const pass=document.getElementById('login-password').value;
+  if(!uname||!pass){toast('Please enter your username and password.','err');return;}
+  const user = DB.users.find(u=>u.username.toLowerCase()===uname.toLowerCase() && u.role===role);
+  if(!user || user.password!==pass){toast('Invalid credentials or role selected.','err');return;}
+  CURRENT_USER = user;
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({id:user.id}));
+  enterApp();
+}
+function doLogout(){
+  CURRENT_USER=null; sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('view-login').style.display='flex';
+  document.getElementById('login-password').value='';
+}
+function tryRestoreSession(){
+  const raw=sessionStorage.getItem(SESSION_KEY);
+  if(!raw) return;
+  try{
+    const {id}=JSON.parse(raw);
+    const user=DB.users.find(u=>u.id===id);
+    if(user){ CURRENT_USER=user; enterApp(); }
+  }catch(e){}
+}
+
+/* ---------------- forgot password (OTP) ---------------- */
+let forgotState = {username:null, otp:null};
+function openForgot(){
+  document.getElementById('modal-forgot').classList.remove('hidden');
+  document.getElementById('forgot-step-email').classList.remove('hidden');
+  document.getElementById('forgot-step-otp').classList.add('hidden');
+  document.getElementById('forgot-step-reset').classList.add('hidden');
+  document.getElementById('forgot-username').value='';
+}
+function closeForgot(){ document.getElementById('modal-forgot').classList.add('hidden'); }
+function sendOtp(isResend){
+  const uname = isResend? forgotState.username : document.getElementById('forgot-username').value.trim();
+  const user = DB.users.find(u=>u.username.toLowerCase()===uname.toLowerCase());
+  if(!user){ toast('No account found with that username.','err'); return; }
+  const code = String(Math.floor(100000+Math.random()*900000)).slice(0,4);
+  forgotState = {username:user.username, otp:code};
+  document.getElementById('forgot-step-email').classList.add('hidden');
+  document.getElementById('forgot-step-otp').classList.remove('hidden');
+  document.querySelectorAll('.otp-d').forEach(i=>i.value='');
+  // Simulated email service (no real SMTP configured in this prototype)
+  toast('OTP sent to '+user.email+' — simulated code: '+code, 'ok');
+}
+function verifyOtp(){
+  const digits = Array.from(document.querySelectorAll('.otp-d')).map(i=>i.value).join('');
+  if(digits.length<4 || digits!==forgotState.otp){ toast('Incorrect OTP. Please try again.','err'); return; }
+  document.getElementById('forgot-step-otp').classList.add('hidden');
+  document.getElementById('forgot-step-reset').classList.remove('hidden');
+}
+function resetPassword(){
+  const p1=document.getElementById('forgot-pw1').value, p2=document.getElementById('forgot-pw2').value;
+  if(!p1 || p1.length<6){ toast('Password must be at least 6 characters.','err'); return; }
+  if(p1!==p2){ toast('Passwords do not match.','err'); return; }
+  const user = DB.users.find(u=>u.username===forgotState.username);
+  user.password=p1; saveDB(DB);
+  toast('Your password has been changed successfully!','ok');
+  closeForgot();
+}
+
+/* ---------------- icons ---------------- */
+const ICONS = {
+  building:'<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/><path d="M9 10h.01M15 10h.01"/>',
+  home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+  folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
+  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  door:'<path d="M5 21V5a2 2 0 0 1 2-2h6l4 4v14"/><path d="M13 3v18"/><circle cx="9.5" cy="12" r="1"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+  layers:'<path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>'
+};
+function svg(name){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICONS[name]+'</svg>'; }
+
+/* ---------------- nav / router ---------------- */
+const NAV_ADMIN = [
+  {id:'dashboard', label:'Dashboard', icon:'home'},
+  {id:'department', label:'Departments', icon:'building'},
+  {id:'curriculum', label:'Curriculum', icon:'folder'},
+  {id:'offering', label:'Course Offering', icon:'layers'},
+  {id:'schedule', label:'Course Scheduling', icon:'calendar'},
+  {id:'availability', label:'Room Availability', icon:'door'},
+  {id:'instructor', label:'Instructors', icon:'users'},
+  {id:'room', label:'Rooms', icon:'door'},
+  {id:'section', label:'Student Sections', icon:'users'},
+  {id:'report', label:'Reports', icon:'file'}
+];
+const NAV_FACULTY = [
+  {id:'dashboard', label:'Dashboard', icon:'home'},
+  {id:'schedule', label:'My Schedule', icon:'calendar'},
+  {id:'availability', label:'Room Availability', icon:'door'},
+  {id:'report', label:'Reports', icon:'file'}
+];
+let currentView='dashboard';
+
+function enterApp(){
+  reportType='instructor'; reportFirst=true; schedDayMode='all'; availState={roomId:null,day:'all'};
+  document.getElementById('view-login').style.display='none';
+  document.getElementById('app').classList.add('active');
+  document.getElementById('chip-name').textContent=CURRENT_USER.name;
+  document.getElementById('chip-role').textContent = CURRENT_USER.role==='admin'?'Administrator':'Faculty Member';
+  document.getElementById('chip-avatar').textContent=CURRENT_USER.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  buildSidebar();
+  navigate('dashboard');
+}
+function buildSidebar(){
+  const nav = CURRENT_USER.role==='admin'?NAV_ADMIN:NAV_FACULTY;
+  const side=document.getElementById('sidebar');
+  side.innerHTML = '<div class="side-logo">S</div>' + nav.map(n=>
+    `<button class="side-btn" data-view="${n.id}" onclick="navigate('${n.id}')">${svg(n.icon)}<span class="tip">${n.label}</span></button>`
+  ).join('') + '<div class="side-spacer"></div>';
+}
+function navigate(view){
+  currentView=view;
+  document.querySelectorAll('.side-btn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  const nav = CURRENT_USER.role==='admin'?NAV_ADMIN:NAV_FACULTY;
+  const meta = nav.find(n=>n.id===view) || {label:view};
+  document.getElementById('page-title').textContent = meta.label;
+  const subs = {
+    dashboard:'Real-time snapshot of scheduling activity',
+    department:'Add and manage departments',
+    curriculum:'Manage curriculum information used to build course offerings',
+    offering:'Add and manage the programs each department offers',
+    schedule: CURRENT_USER.role==='admin' ? 'Create and manage class schedules with automatic conflict detection' : 'View your assigned classes — view only',
+    availability:'Check which rooms are free or booked, by room and by day',
+    instructor:'Manage instructor records and teaching loads',
+    room:'Manage classroom information and capacity',
+    section:'Add and manage the sections of each program',
+    report:'Generate and export scheduling reports'
+  };
+  document.getElementById('page-sub').textContent = subs[view]||'';
+  renderView(view);
+}
+function renderView(view){
+  const c=document.getElementById('content');
+  const renderers={
+    dashboard: CURRENT_USER.role==='admin'?renderDashboardAdmin:renderDashboardFaculty,
+    department: renderDepartment,
+    curriculum: renderCurriculum,
+    offering: renderOffering,
+    schedule: renderSchedule,
+    availability: renderAvailability,
+    instructor: renderInstructor,
+    room: renderRoom,
+    section: renderSection,
+    report: renderReport
+  };
+  c.innerHTML='';
+  (renderers[view]||(()=>{}))(c);
+}
+
+/* ================= DASHBOARD ================= */
+function renderDashboardAdmin(c){
+  const subjectCounts={};
+  DB.schedules.forEach(s=>{subjectCounts[s.subject]=(subjectCounts[s.subject]||0)+1;});
+  const entries=Object.entries(subjectCounts);
+  const max=Math.max(1,...entries.map(e=>e[1]));
+  c.innerHTML = `
+    <div class="grid-stats">
+      <div class="stat-card"><div class="num">${DB.departments.length}</div><div class="lbl">Departments</div></div>
+      <div class="stat-card"><div class="num">${DB.offerings.length}</div><div class="lbl">Programs Offered</div></div>
+      <div class="stat-card"><div class="num">${DB.rooms.length}</div><div class="lbl">Total Rooms</div></div>
+      <div class="stat-card"><div class="num">${DB.instructors.length}</div><div class="lbl">Total Instructors</div></div>
+      <div class="stat-card"><div class="num">${DB.sections.length}</div><div class="lbl">Student Sections</div></div>
+      <div class="stat-card"><div class="num">${DB.schedules.length}</div><div class="lbl">Active Schedules</div></div>
+    </div>
+    <div class="card">
+      <h3>Most-scheduled subjects</h3>
+      ${entries.length? `<div class="barchart">${entries.map(([name,ct])=>`
+        <div class="bar-col"><div class="bar" style="height:${(ct/max*140)+20}px"></div><div class="bar-lbl">${name}</div></div>
+      `).join('')}</div>` : `<p class="note">No schedules yet. Add one from Course Scheduling.</p>`}
+    </div>
+    <div class="card">
+      <h3>Recent activity</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Section</th><th>Room</th><th>Instructor</th></tr></thead>
+        <tbody>${DB.schedules.slice(-6).reverse().map(s=>`
+          <tr><td>${s.day}</td><td>${fmtRange(s.start,s.end)}</td><td>${esc(s.subject)}</td><td>${esc(sectionName(s.sectionId))}</td><td>${roomName(s.roomId)}</td><td>${instrName(s.instructorId)}</td></tr>
+        `).join('') || '<tr class="empty-row"><td colspan="6">No schedules recorded yet.</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+}
+function renderDashboardFaculty(c){
+  c.innerHTML = `
+    <div class="card"><div class="clock-box">
+      <div class="clock-time" id="live-clock">--:--</div>
+      <div class="clock-date" id="live-date">—</div>
+    </div></div>
+    <div class="card"><h3>Quick links</h3>
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-primary" onclick="navigate('schedule')">View my schedule</button>
+        <button class="btn btn-ghost" onclick="navigate('report')">Open reports</button>
+      </div>
+    </div>`;
+  tickClock();
+}
+let clockTimer=null;
+function tickClock(){
+  clearInterval(clockTimer);
+  const el=document.getElementById('live-clock'), dl=document.getElementById('live-date');
+  function upd(){
+    if(!document.getElementById('live-clock')){clearInterval(clockTimer);return;}
+    const d=new Date();
+    document.getElementById('live-clock').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    document.getElementById('live-date').textContent=d.toLocaleDateString([], {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  }
+  upd(); clockTimer=setInterval(upd,1000*30);
+}
+
+/* ================= helpers ================= */
+function fmtM(m){let h=Math.floor(m/60),mi=m%60;const ap=h>=12?'PM':'AM';let h12=h%12; if(h12===0)h12=12;return (h12<10?'0'+h12:h12)+':'+(mi<10?'0'+mi:mi)+' '+ap;}
+function fmtRange(s,e){return fmtM(s)+' - '+fmtM(e);}
+function roomName(id){const r=DB.rooms.find(x=>x.id===id); return r? r.name : '—';}
+function instrName(id){const i=DB.instructors.find(x=>x.id===id); return i? (i.first+' '+i.last) : '—';}
+function fullName(i){return i.first+' '+(i.middle?i.middle+' ':'')+i.last;}
+function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function deptName(id){const d=DB.departments.find(x=>x.id===id);return d?d.name:'—';}
+function programById(id){return DB.offerings.find(o=>o.id===id)||null;}
+function sectionById(id){return DB.sections.find(s=>s.id===id)||null;}
+function sectionName(id){const s=sectionById(id);return s?s.name:'—';}
+const YEARS=['1st Year','2nd Year','3rd Year','4th Year'];
+const DAY_NAMES={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday'};
+const LEVEL_LABELS={'1':'Ground Floor','2':'2nd Floor','3':'3rd Floor','4':'4th Floor'};
+function levelLabel(l){ return LEVEL_LABELS[l] || ('Level '+l); }
+function fv(id){ const el=document.getElementById(id); return el? el.value : ''; }
+
+/* ---- filter UI building blocks (every category gets its own labelled dropdown) ---- */
+function filterBarHtml(inner, resetCall){ return `<div class="filter-bar no-print">${inner}<button class="btn btn-ghost btn-sm reset" onclick="${resetCall}">Reset filters</button></div>`; }
+function fgroup(caption, fields){ return `<div class="fgroup"><div class="fcap">${caption}</div><div class="frow">${fields}</div></div>`; }
+function selHtml(id,label,allLabel,opts,onchange){
+  return `<div class="field"><label>${label}</label><select id="${id}" onchange="${onchange}"><option value="">${allLabel}</option>${opts.map(o=>`<option value="${esc(o.v)}">${esc(o.l)}</option>`).join('')}</select></div>`;
+}
+function resetFilters(ids, cb){ ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); if(cb) cb(); }
+function deptFilterOpts(){ return DB.departments.map(d=>({v:d.id,l:d.name})); }
+function levelFilterOpts(){ return [...new Set(DB.rooms.map(r=>r.level))].sort().map(l=>({v:l,l:levelLabel(l)})); }
+function locationFilterOpts(){ return [...new Set(DB.rooms.map(r=>r.location))].sort().map(l=>({v:l,l:l})); }
+
+/* grouped option lists */
+function instructorOptionsHtml(){
+  const groups=DB.departments.map(d=>({name:d.name,list:DB.instructors.filter(i=>i.deptId===d.id)}));
+  const orphans=DB.instructors.filter(i=>!DB.departments.some(d=>d.id===i.deptId));
+  if(orphans.length) groups.push({name:'No department',list:orphans});
+  return groups.filter(g=>g.list.length).map(g=>`<optgroup label="${esc(g.name)}">${g.list.map(i=>`<option value="${i.id}">${esc(fullName(i))}</option>`).join('')}</optgroup>`).join('');
+}
+function roomOptionsHtml(){
+  const levels=[...new Set(DB.rooms.map(r=>r.level))].sort();
+  return levels.map(l=>`<optgroup label="${esc(levelLabel(l))}">${DB.rooms.filter(r=>r.level===l).map(r=>`<option value="${r.id}">${esc(r.name)} (${esc(r.code)})</option>`).join('')}</optgroup>`).join('');
+}
+function sectionOptionsGrouped(){
+  let out=DB.offerings.map(o=>{ const list=DB.sections.filter(s=>s.programId===o.id);
+    return list.length?`<optgroup label="${esc(o.code)} — ${esc(deptName(o.deptId))}">${list.map(s=>`<option value="${s.id}">${esc(s.name)} (${esc(s.year)})</option>`).join('')}</optgroup>`:''; }).join('');
+  const orphans=DB.sections.filter(s=>!programById(s.programId));
+  if(orphans.length) out+=`<optgroup label="No program">${orphans.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</optgroup>`;
+  return out;
+}
+function instructorSelectHtml(id,label,allLabel,onchange){ return `<div class="field"><label>${label}</label><select id="${id}" onchange="${onchange}"><option value="">${allLabel}</option>${instructorOptionsHtml()}</select></div>`; }
+function roomSelectHtml(id,label,allLabel,onchange){ return `<div class="field"><label>${label}</label><select id="${id}" onchange="${onchange}"><option value="">${allLabel}</option>${roomOptionsHtml()}</select></div>`; }
+
+/* cascading Department -> Program -> Section filter */
+const ORG_CB={};
+function orgFilterHtml(p, opts){
+  const withSec=!(opts&&opts.section===false);
+  return `<div class="field"><label>Department</label><select id="${p}-fdept" onchange="orgFilterChanged('${p}','dept')"></select></div>
+    <div class="field"><label>Program</label><select id="${p}-fprog" onchange="orgFilterChanged('${p}','prog')"></select></div>
+    ${withSec?`<div class="field"><label>Section</label><select id="${p}-fsec" onchange="orgFilterChanged('${p}','sec')"></select></div>`:''}`;
+}
+function fillOrgFilter(p, from){
+  const dEl=document.getElementById(p+'-fdept'), pEl=document.getElementById(p+'-fprog'), sEl=document.getElementById(p+'-fsec');
+  if(!dEl) return;
+  if(from==='init') dEl.innerHTML='<option value="">All departments</option>'+DB.departments.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('');
+  if(from==='init'||from==='dept'){
+    const d=+dEl.value||0;
+    pEl.innerHTML='<option value="">All programs</option>'+DB.offerings.filter(o=>!d||o.deptId===d).map(o=>`<option value="${o.id}">${esc(o.code)}</option>`).join('');
+  }
+  if(sEl && from!=='sec'){
+    const d=+dEl.value||0, pr=+pEl.value||0;
+    sEl.innerHTML='<option value="">All sections</option>'+DB.sections.filter(s=>(!d||s.deptId===d)&&(!pr||s.programId===pr)).map(s=>`<option value="${s.id}">${esc(s.name)} · ${esc(s.year)}</option>`).join('');
+  }
+}
+function orgFilterChanged(p, lvl){ fillOrgFilter(p, lvl); if(ORG_CB[p]) ORG_CB[p](); }
+function getOrgFilter(p){ return { d:+fv(p+'-fdept')||0, pr:+fv(p+'-fprog')||0, s:+fv(p+'-fsec')||0 }; }
+
+/* ---- per-page filter bars ---- */
+function curriculumFilterBar(){
+  const years=[...new Set(DB.curriculum.map(c=>String(c.year)))].sort();
+  return filterBarHtml(fgroup('Curriculum',
+    selHtml('cf-prog','Program','All programs',DB.offerings.map(o=>({v:o.code,l:o.code})),'paintCurriculum()')+
+    selHtml('cf-level','Year level','All year levels',YEARS.map(y=>({v:y,l:y})),'paintCurriculum()')+
+    selHtml('cf-period','Period','All periods',['1st Semester','2nd Semester','Summer'].map(y=>({v:y,l:y})),'paintCurriculum()')+
+    selHtml('cf-year','Curriculum year','All years',years.map(y=>({v:y,l:y})),'paintCurriculum()')),
+    "resetFilters(['cf-prog','cf-level','cf-period','cf-year'],paintCurriculum)");
+}
+function curriculumPass(r){
+  const p=fv('cf-prog'), l=fv('cf-level'), pe=fv('cf-period'), y=fv('cf-year');
+  return (!p||r.programCode===p)&&(!l||r.level===l)&&(!pe||r.period===pe)&&(!y||String(r.year)===y);
+}
+function offeringFilterBar(){
+  return filterBarHtml(fgroup('Department', selHtml('of-dept','Department','All departments',deptFilterOpts(),'paintOffering()')),"resetFilters(['of-dept'],paintOffering)");
+}
+function instructorFilterBar(){
+  return filterBarHtml(fgroup('Instructor',
+    selHtml('if-dept','Department','All departments',deptFilterOpts(),'paintInstructor();paintInstructorLoad()')+
+    selHtml('if-emp','Employment type','All types',[{v:'Full-time',l:'Full-time'},{v:'Part-time',l:'Part-time'}],'paintInstructor();paintInstructorLoad()')),
+    "resetFilters(['if-dept','if-emp'],function(){paintInstructor();paintInstructorLoad();})");
+}
+function instructorFilterPass(i){
+  const d=+fv('if-dept')||0, e=fv('if-emp');
+  return (!d||i.deptId===d)&&(!e||i.employment===e);
+}
+function sectionFilterBar(){
+  return filterBarHtml(fgroup('Class', orgFilterHtml('sx',{section:false}))+
+    fgroup('Level', selHtml('sx-year','Year level','All year levels',YEARS.map(y=>({v:y,l:y})),'paintSection()')),
+    "resetSectionFilters()");
+}
+function resetSectionFilters(){ fillOrgFilter('sx','init'); const y=document.getElementById('sx-year'); if(y) y.value=''; paintSection(); }
+function roomFilterBar(){
+  return filterBarHtml(fgroup('Room',
+    selHtml('rf-level','Floor / level','All floors',levelFilterOpts(),'paintRoom()')+
+    selHtml('rf-loc','Location','All locations',locationFilterOpts(),'paintRoom()')),
+    "resetFilters(['rf-level','rf-loc'],paintRoom)");
+}
+
+
+/* ---- generic form modal (used for edit/add pop-ups) ---- */
+let fmFields=[], fmHandler=null;
+function openFormModal(cfg){
+  fmFields=cfg.fields; fmHandler=cfg.onSave;
+  document.getElementById('fm-title').textContent=cfg.title;
+  document.getElementById('fm-error').innerHTML='';
+  document.getElementById('fm-fields').innerHTML = cfg.fields.map(f=>{
+    const id='fm-'+f.id; let input;
+    if(f.type==='select') input=`<select id="${id}">${f.options.map(o=>`<option value="${esc(o.v)}" ${String(o.v)===String(f.value)?'selected':''}>${esc(o.l)}</option>`).join('')}</select>`;
+    else input=`<input id="${id}" type="${f.type||'text'}" ${f.min!==undefined?`min="${f.min}"`:''} value="${esc(f.value)}" placeholder="${esc(f.placeholder||'')}">`;
+    return `<div class="field"><label>${f.label}</label>${input}</div>`;
+  }).join('');
+  document.getElementById('fm-save').textContent=cfg.saveLabel||'Save';
+  document.getElementById('modal-form').classList.remove('hidden');
+  const first=document.querySelector('#fm-fields input, #fm-fields select'); if(first) first.focus();
+}
+function closeFormModal(){ document.getElementById('modal-form').classList.add('hidden'); fmHandler=null; }
+function submitFormModal(){
+  const vals={}; fmFields.forEach(f=>{ vals[f.id]=document.getElementById('fm-'+f.id).value; });
+  const err = fmHandler ? fmHandler(vals) : null;
+  if(err){ document.getElementById('fm-error').innerHTML=`<div class="conflict-box">${esc(err)}</div>`; return; }
+  closeFormModal();
+}
+
+
+/* ================= CURRICULUM ================= */
+function programOptionsHtml(selectedCode){
+  if(!DB.offerings.length) return '<option value="">— Add a program in Departments first —</option>';
+  return DB.offerings.map(o=>`<option value="${esc(o.code)}" ${o.code===selectedCode?'selected':''}>${esc(o.code)} — ${esc(o.name)}</option>`).join('');
+}
+function deptOptionsHtml(selectedId){
+  if(!DB.departments.length) return '<option value="">— Add a department first —</option>';
+  return DB.departments.map(d=>`<option value="${d.id}" ${d.id===selectedId?'selected':''}>${esc(d.name)}</option>`).join('');
+}
+function renderCurriculum(c){
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-head"><h3>Add curriculum</h3></div>
+      <div class="form-grid">
+        <div class="field"><label>Curriculum year</label><input id="cur-year" placeholder="2025"></div>
+        <div class="field"><label>Period</label><select id="cur-period"><option>1st Semester</option><option>2nd Semester</option><option>Summer</option></select></div>
+        <div class="field"><label>Year level</label><select id="cur-level">${YEARS.map(y=>`<option>${y}</option>`).join('')}</select></div>
+        <div class="field"><label>Program</label><select id="cur-program">${programOptionsHtml()}</select></div>
+        <div class="field"><label>Course code</label><input id="cur-code" placeholder="CC101"></div>
+        <div class="field"><label>Course name</label><input id="cur-name" placeholder="Introduction to Computing"></div>
+        <div class="field"><label>Lec units</label><input id="cur-lec" type="number" min="0" value="2"></div>
+        <div class="field"><label>Lab units</label><input id="cur-lab" type="number" min="0" value="0"></div>
+        <div class="field"><label>Total units</label><input id="cur-units" type="number" min="0" value="3"></div>
+      </div>
+      <button class="btn btn-primary" onclick="addCurriculum()">Add curriculum</button>
+    </div>
+    <div class="card">
+      <h3>Curriculum records</h3>
+      ${curriculumFilterBar()}
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Year</th><th>Period</th><th>Level</th><th>Program</th><th>Code</th><th>Course name</th><th>Lec</th><th>Lab</th><th>Units</th><th></th></tr></thead>
+        <tbody id="cur-tbody"></tbody>
+      </table></div>
+    </div>`;
+  paintCurriculum();
+}
+function paintCurriculum(){
+  const tb=document.getElementById('cur-tbody');
+  tb.innerHTML = DB.curriculum.filter(curriculumPass).map(r=>`
+    <tr><td>${r.id}</td><td>${r.year}</td><td>${r.period}</td><td>${r.level}</td><td>${esc(r.programCode)}</td><td>${esc(r.courseCode)}</td><td>${esc(r.courseName)}</td><td>${r.lec}</td><td>${r.lab}</td><td>${r.units}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="delCurriculum(${r.id})">Delete</button></td></tr>
+  `).join('') || '<tr class="empty-row"><td colspan="11">No curriculum records yet.</td></tr>';
+}
+function addCurriculum(){
+  const year=document.getElementById('cur-year').value.trim();
+  const programCode=document.getElementById('cur-program').value;
+  const courseCode=document.getElementById('cur-code').value.trim();
+  const courseName=document.getElementById('cur-name').value.trim();
+  if(!year||!programCode||!courseCode||!courseName){toast('Please complete all required fields (and add a program first if the list is empty).','err');return;}
+  DB.curriculum.push({
+    id:nid('curriculum'), year, period:document.getElementById('cur-period').value, level:document.getElementById('cur-level').value,
+    programCode, courseCode, courseName,
+    lec:+document.getElementById('cur-lec').value||0, lab:+document.getElementById('cur-lab').value||0, units:+document.getElementById('cur-units').value||0
+  });
+  saveDB(DB); paintCurriculum(); toast('Curriculum added.','ok');
+  ['cur-year','cur-code','cur-name'].forEach(id=>document.getElementById(id).value='');
+}
+function delCurriculum(id){ DB.curriculum=DB.curriculum.filter(r=>r.id!==id); saveDB(DB); paintCurriculum(); toast('Curriculum removed.'); }
+
+/* ================= DEPARTMENTS / PROGRAMS / SECTIONS ================= */
+function refreshOrg(){
+  if(currentView==='department') paintDepartments();
+  else if(currentView==='offering') paintOffering();
+  else if(currentView==='section') paintSection();
+}
+function renderDepartment(c){
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-head"><h3>Add department</h3></div>
+      <div class="form-grid"><div class="field"><label>Department name</label>
+        <input id="dp-name" placeholder="e.g. Computer Studies Department" onkeydown="if(event.key==='Enter')addDepartment()"></div></div>
+      <button class="btn btn-primary" onclick="addDepartment()">Add department</button>
+    </div>
+    <div class="card">
+      <h3>Departments</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Department</th><th>Programs offered</th><th>Sections</th><th></th></tr></thead>
+        <tbody id="dept-tbody"></tbody>
+      </table></div>
+      <p class="note">Programs are added in the Course Offering tab and sections in the Student Sections tab. They appear here automatically.</p>
+    </div>`;
+  paintDepartments();
+}
+function paintDepartments(){
+  const tb=document.getElementById('dept-tbody'); if(!tb) return;
+  tb.innerHTML = DB.departments.map(d=>{
+    const progs=DB.offerings.filter(o=>o.deptId===d.id);
+    const secCount=DB.sections.filter(s=>s.deptId===d.id).length;
+    return `<tr><td><b>${esc(d.name)}</b></td>
+      <td>${progs.map(o=>`<span class="chip" style="cursor:default" title="${esc(o.name)}">${esc(o.code)}</span>`).join('')||'<span class="note">No programs yet</span>'}</td>
+      <td>${secCount}</td>
+      <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="renameDepartment(${d.id})">Rename</button> <button class="btn btn-danger btn-sm" onclick="delDepartment(${d.id})">Delete</button></td></tr>`;
+  }).join('') || '<tr class="empty-row"><td colspan="4">No departments yet. Add your first department above.</td></tr>';
+}
+function addDepartment(){
+  const inp=document.getElementById('dp-name'); const name=inp.value.trim();
+  if(!name){ toast('Please enter a department name.','err'); return; }
+  if(DB.departments.some(d=>d.name.toLowerCase()===name.toLowerCase())){ toast('That department already exists.','err'); return; }
+  DB.departments.push({id:nid('departments'), name}); saveDB(DB);
+  inp.value=''; paintDepartments(); toast('Department saved.','ok');
+}
+function renameDepartment(id){
+  const d=DB.departments.find(x=>x.id===id);
+  openFormModal({title:'Rename department', fields:[{id:'name',label:'Department name',value:d.name}], onSave:v=>{
+    const name=v.name.trim(); if(!name) return 'Department name is required.';
+    if(DB.departments.some(x=>x.id!==id && x.name.toLowerCase()===name.toLowerCase())) return 'That department already exists.';
+    d.name=name; saveDB(DB); refreshOrg(); toast('Department updated.','ok'); return null;
+  }});
+}
+function delDepartment(id){
+  if(DB.offerings.some(o=>o.deptId===id)){ toast('Remove this department\'s programs first.','err'); return; }
+  if(DB.instructors.some(i=>i.deptId===id)){ toast('Instructors are still assigned to this department.','err'); return; }
+  DB.departments=DB.departments.filter(d=>d.id!==id); saveDB(DB); refreshOrg(); toast('Department removed.');
+}
+function programCodeTaken(code, exceptId){ return DB.offerings.some(o=>o.id!==exceptId && o.code.toLowerCase()===code.toLowerCase()); }
+function createProgram(deptId, code, name){
+  if(!deptId) return 'Please choose a department.';
+  if(!code) return 'Program code is required.';
+  if(programCodeTaken(code,null)) return `Program "${code}" already exists.`;
+  DB.offerings.push({id:nid('offerings'), deptId, code, name:name||code}); saveDB(DB); return null;
+}
+function editOffering(id){
+  const o=programById(id);
+  openFormModal({title:'Edit program', fields:[
+    {id:'dept',label:'Department',type:'select',value:o.deptId,options:DB.departments.map(d=>({v:d.id,l:d.name}))},
+    {id:'code',label:'Program code',value:o.code},
+    {id:'name',label:'Program name',value:o.name}
+  ], onSave:v=>{
+    const code=v.code.trim(), name=v.name.trim();
+    if(!code) return 'Program code is required.';
+    if(programCodeTaken(code,id)) return `Program "${code}" already exists.`;
+    const oldCode=o.code;
+    o.deptId=+v.dept; o.code=code; o.name=name||code;
+    DB.curriculum.forEach(c=>{ if(c.programCode===oldCode) c.programCode=code; });
+    DB.sections.filter(s=>s.programId===id).forEach(s=>s.deptId=o.deptId);
+    saveDB(DB); refreshOrg(); toast('Program updated.','ok'); return null;
+  }});
+}
+function delOffering(id){
+  if(DB.sections.some(s=>s.programId===id)){ toast('Delete this program\'s sections first.','err'); return; }
+  DB.offerings=DB.offerings.filter(o=>o.id!==id); saveDB(DB); refreshOrg(); toast('Program removed.');
+}
+/* Course Offering page = every program offered, across departments */
+function renderOffering(c){
+  c.innerHTML=`
+    <div class="card">
+      <div class="card-head"><h3>Add program offered</h3></div>
+      <div class="form-grid">
+        <div class="field"><label>Department</label><select id="off-dept">${deptOptionsHtml()}</select></div>
+        <div class="field"><label>Program code</label><input id="off-code" placeholder="BSIT"></div>
+        <div class="field"><label>Program name</label><input id="off-name" placeholder="Bachelor of Science in Information Technology"></div>
+      </div>
+      <button class="btn btn-primary" onclick="addOffering()">Add program</button>
+    </div>
+    <div class="card"><h3>Programs offered</h3>
+      ${offeringFilterBar()}
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Department</th><th>Program code</th><th>Program name</th><th></th></tr></thead>
+        <tbody id="off-tbody"></tbody>
+      </table></div>
+    </div>`;
+  paintOffering();
+}
+function paintOffering(){
+  const tb=document.getElementById('off-tbody'); if(!tb) return;
+  tb.innerHTML = DB.offerings.filter(o=>!fv('of-dept')||o.deptId===+fv('of-dept')).map(o=>`
+    <tr><td>${o.id}</td><td>${esc(deptName(o.deptId))}</td><td><b>${esc(o.code)}</b></td><td>${esc(o.name)}</td>
+    <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="editOffering(${o.id})">Edit</button> <button class="btn btn-danger btn-sm" onclick="delOffering(${o.id})">Delete</button></td></tr>
+  `).join('') || '<tr class="empty-row"><td colspan="5">No programs yet.</td></tr>';
+}
+function addOffering(){
+  const deptId=+document.getElementById('off-dept').value, code=document.getElementById('off-code').value.trim(), name=document.getElementById('off-name').value.trim();
+  const err=createProgram(deptId,code,name);
+  if(err){ toast(err,'err'); return; }
+  paintOffering(); toast('Program added.','ok');
+  document.getElementById('off-code').value=''; document.getElementById('off-name').value='';
+}
+/* ---- sections (shared by Departments page and Student Sections page) ---- */
+function openSectionForm(opts){
+  const s = opts.editId ? sectionById(opts.editId) : null;
+  const programId = s ? s.programId : opts.programId;
+  const p = programById(programId);
+  openFormModal({
+    title: s ? 'Edit section' : `Add section — ${p?p.code:''}`,
+    fields:[
+      {id:'name',label:'Section name',value:s?s.name:'',placeholder:`e.g. ${p?p.code:'BSIT'} 1-A`},
+      {id:'students',label:'Number of students',type:'number',min:1,value:s?s.students:35},
+      {id:'year',label:'Year level',type:'select',value:s?s.year:'1st Year',options:YEARS.map(y=>({v:y,l:y}))}
+    ],
+    onSave:v=>saveSection({programId, name:v.name.trim(), students:+v.students||0, year:v.year}, opts.editId||null)
+  });
+}
+function saveSection(d, editId){
+  if(!d.name) return 'Section name is required.';
+  const p=programById(d.programId); if(!p) return 'Please choose a program.';
+  if(DB.sections.some(s=>s.id!==editId && s.programId===d.programId && s.name.toLowerCase()===d.name.toLowerCase())) return `Section "${d.name}" already exists in ${p.code}.`;
+  if(editId){ Object.assign(sectionById(editId),{programId:d.programId,deptId:p.deptId,name:d.name,students:d.students,year:d.year}); }
+  else { DB.sections.push({id:nid('sections'),deptId:p.deptId,programId:d.programId,name:d.name,students:d.students,year:d.year}); }
+  saveDB(DB); refreshOrg(); toast(editId?'Section updated.':'Section saved.','ok'); return null;
+}
+function delSection(id){
+  if(DB.schedules.some(s=>s.sectionId===id)){ toast('This section still has scheduled classes. Remove those first.','err'); return; }
+  DB.sections=DB.sections.filter(s=>s.id!==id); saveDB(DB); refreshOrg(); toast('Section removed.');
+}
+
+/* ================= STUDENT SECTION PAGE ================= */
+function renderSection(c){
+  c.innerHTML=`
+    <div class="card">
+      <div class="card-head"><h3>Add student section</h3></div>
+      <div class="form-grid">
+        <div class="field"><label>Department</label><select id="se-dept" onchange="onSecDeptChange()">${deptOptionsHtml()}</select></div>
+        <div class="field"><label>Program</label><select id="se-prog"></select></div>
+        <div class="field"><label>Section name</label><input id="se-name" placeholder="BSIT 1-B"></div>
+        <div class="field"><label>Number of students</label><input id="se-num" type="number" min="1" value="35"></div>
+        <div class="field"><label>Year level</label><select id="se-year">${YEARS.map(y=>`<option>${y}</option>`).join('')}</select></div>
+      </div>
+      <button class="btn btn-primary" onclick="addSection()">Add section</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Student sections</h3>
+        <div class="search-box">${svg('folder')}<input id="se-search" placeholder="Search section..." oninput="paintSection()"></div>
+      </div>
+      ${sectionFilterBar()}
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Department</th><th>Program</th><th>Section name</th><th>No. of students</th><th>Year level</th><th></th></tr></thead>
+        <tbody id="se-tbody"></tbody>
+      </table></div>
+    </div>`;
+  ORG_CB.sx=paintSection; fillOrgFilter('sx','init');
+  onSecDeptChange(); paintSection();
+}
+function onSecDeptChange(){
+  const d=+document.getElementById('se-dept').value;
+  const progs=DB.offerings.filter(o=>o.deptId===d);
+  document.getElementById('se-prog').innerHTML = progs.length
+    ? progs.map(o=>`<option value="${o.id}">${esc(o.code)} — ${esc(o.name)}</option>`).join('')
+    : '<option value="">— No programs in this department —</option>';
+}
+function addSection(){
+  const programId=+document.getElementById('se-prog').value;
+  const err=saveSection({programId, name:document.getElementById('se-name').value.trim(), students:+document.getElementById('se-num').value||0, year:document.getElementById('se-year').value}, null);
+  if(err){ toast(err,'err'); return; }
+  document.getElementById('se-name').value='';
+}
+function paintSection(){
+  const tb=document.getElementById('se-tbody'); if(!tb) return;
+  const q=(document.getElementById('se-search')?.value||'').toLowerCase();
+  const f=getOrgFilter('sx'), yr=fv('sx-year');
+  const rows=DB.sections.filter(s=>{
+    const p=programById(s.programId);
+    if(f.d && s.deptId!==f.d) return false;
+    if(f.pr && s.programId!==f.pr) return false;
+    if(yr && s.year!==yr) return false;
+    return !q || s.name.toLowerCase().includes(q) || (p&&p.code.toLowerCase().includes(q)) || deptName(s.deptId).toLowerCase().includes(q);
+  });
+  tb.innerHTML = rows.map(s=>{
+    const p=programById(s.programId);
+    return `<tr><td>${s.id}</td><td>${esc(deptName(s.deptId))}</td><td>${esc(p?p.code:'—')}</td><td>${esc(s.name)}</td><td>${s.students}</td><td>${esc(s.year)}</td>
+    <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="openSectionForm({editId:${s.id}})">Edit</button> <button class="btn btn-danger btn-sm" onclick="delSection(${s.id})">Delete</button></td></tr>`;
+  }).join('') || '<tr class="empty-row"><td colspan="7">No student sections found.</td></tr>';
+}
+/* ================= SCHEDULING ================= */
+const ROW_H = 30; // px per 30-min slot — fixed so the grid never reflows
+const DAY_START = TIME_SLOTS[0].start, DAY_END = TIME_SLOTS[TIME_SLOTS.length-1].end;
+
+function computeConflicts(day,start,end,roomId,instructorId,sectionId,excludeId){
+  const out=[];
+  DB.schedules.forEach(s=>{
+    if(s.id===excludeId || s.day!==day) return;
+    if(!(start < s.end && s.start < end)) return;
+    if(s.roomId===roomId) out.push(`Room "${roomName(roomId)}" is already booked for "${s.subject}" at ${fmtRange(s.start,s.end)}.`);
+    if(s.instructorId===instructorId) out.push(`Instructor "${instrName(instructorId)}" already has "${s.subject}" at ${fmtRange(s.start,s.end)}.`);
+    if(sectionId && s.sectionId===sectionId) out.push(`Section "${sectionName(sectionId)}" already has "${s.subject}" at ${fmtRange(s.start,s.end)}.`);
+  });
+  return out;
+}
+
+/* ---- fixed calendar-style week grid (absolute-positioned blocks: nothing shifts when data changes) ---- */
+function setGridHtml(el, html){ // keep scroll position so repainting never "jumps"
+  const old=el.querySelector('.wk'); const st=old?old.scrollTop:0, sl=old?old.scrollLeft:0;
+  el.innerHTML=html;
+  const nw=el.querySelector('.wk'); if(nw){nw.scrollTop=st;nw.scrollLeft=sl;}
+}
+let schedDayMode = 'all'; // 'all' = full week grid, or one of DAYS = single-day agenda
+function selectSchedDay(mode){ schedDayMode=mode; paintSchedDayPills(); paintScheduleGrid(); }
+function paintSchedDayPills(){
+  const el=document.getElementById('sched-day-pills'); if(!el) return;
+  el.innerHTML = ['all',...DAYS].map(p=>`<button class="day-pill ${schedDayMode===p?'active':''}" onclick="selectSchedDay('${p}')">${p==='all'?'Full Week':p}</button>`).join('');
+}
+/* ---- Room Availability (separate tab; editable for admin, view-only for faculty) ---- */
+function defaultWeekday(){
+  const map={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat'};
+  return map[new Date().getDay()] || 'Mon';
+}
+function layoutLanes(items){
+  const sorted=[...items].sort((a,b)=>a.start-b.start||a.end-b.end);
+  const res=[]; let cluster=[], clusterEnd=-1;
+  const flush=()=>{
+    const laneEnds=[], placed=[];
+    cluster.forEach(s=>{
+      let lane=laneEnds.findIndex(e=>e<=s.start);
+      if(lane===-1){lane=laneEnds.length;laneEnds.push(s.end);} else laneEnds[lane]=s.end;
+      placed.push({s,lane});
+    });
+    placed.forEach(p=>res.push({s:p.s,lane:p.lane,lanes:laneEnds.length}));
+    cluster=[];
+  };
+  sorted.forEach(s=>{
+    if(cluster.length && s.start>=clusterEnd){flush();clusterEnd=-1;}
+    cluster.push(s); clusterEnd=Math.max(clusterEnd,s.end);
+  });
+  if(cluster.length) flush();
+  return res;
+}
+function eventLines(s, show){
+  const parts={section:s.sectionId?sectionName(s.sectionId):'', room:roomName(s.roomId), instructor:instrName(s.instructorId)};
+  const chosen=show.filter(k=>parts[k] && parts[k]!=='—');
+  return chosen.length===3 ? [parts[chosen[0]]+' · '+parts[chosen[1]], parts[chosen[2]]] : chosen.map(k=>parts[k]);
+}
+/* Calendar-style grid used EVERYWHERE (schedule, availability, report). days = which columns to show. */
+function weekGridHtml(items, opts){
+  const o=opts||{}; const editable=!!o.editable, roomId=(o.roomId===undefined?null:o.roomId);
+  const days=o.days||DAYS, show=o.show||['section','room','instructor'], n=days.length;
+  let html=`<div class="wk ${o.full?'full':''}" style="--rh:${ROW_H}px;--n:${n}"><div class="wk-inner" style="min-width:${72+n*(n===1?360:120)}px">
+    <div class="wk-head"><div></div>${days.map(d=>`<div>${n===1?DAY_NAMES[d]:d}</div>`).join('')}</div>
+    <div class="wk-body"><div class="wk-times">${TIME_SLOTS.map(t=>`<div>${fmtM(t.start)}</div>`).join('')}</div>`;
+  days.forEach(d=>{
+    html += `<div class="wk-col ${editable?'editable':''}" style="height:calc(var(--rh) * ${TIME_SLOTS.length})" ${editable?`onclick="gridColClick(event,'${d}',${roomId===null?'null':roomId})"`:''}>`;
+    layoutLanes(items.filter(s=>s.day===d)).forEach(({s,lane,lanes})=>{
+      const top=(s.start-DAY_START)/30, hh=Math.max(1,(s.end-s.start)/30), w=100/lanes, l=lane*w;
+      html += `<div class="wk-ev ${editable?'editable':''}" style="top:calc(var(--rh) * ${top});height:calc(var(--rh) * ${hh} - 2px);left:calc(${l}% + 3px);width:calc(${w}% - 6px)"
+        ${editable?`onclick="event.stopPropagation();openScheduleModal({editId:${s.id}})"`:''} title="${esc(s.subject)} · ${fmtRange(s.start,s.end)}">
+        <b>${esc(s.subject)}</b>${eventLines(s,show).map(x=>`<span>${esc(x)}</span>`).join('')}</div>`;
+    });
+    html += `</div>`;
+  });
+  return html+`</div></div></div>`;
+}
+function gridColClick(ev, day, roomId){
+  const rect=ev.currentTarget.getBoundingClientRect(), rh=rect.height/TIME_SLOTS.length;
+  const idx=Math.max(0,Math.min(TIME_SLOTS.length-1,Math.floor((ev.clientY-rect.top)/rh)));
+  const start=TIME_SLOTS[idx].start, end=Math.min(start+60,DAY_END);
+  const f=(currentView==='schedule')?scheduleFilterState():{};
+  openScheduleModal({day,start,end,roomId:roomId||f.room||undefined,sectionId:f.s||undefined,instructorId:f.instr||undefined});
+}
+function scheduleFilterState(){ const f=getOrgFilter('sf'); return {d:f.d,pr:f.pr,s:f.s,instr:+fv('sf-instr')||0,room:+fv('sf-room')||0}; }
+function scheduleMatches(s,f){
+  if(f.s && s.sectionId!==f.s) return false;
+  if(f.pr||f.d){ const sec=sectionById(s.sectionId); if(!sec) return false; if(f.pr&&sec.programId!==f.pr) return false; if(f.d&&sec.deptId!==f.d) return false; }
+  if(f.instr && s.instructorId!==f.instr) return false;
+  if(f.room && s.roomId!==f.room) return false;
+  return true;
+}
+function resetScheduleFilters(){
+  fillOrgFilter('sf','init');
+  ['sf-instr','sf-room'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  paintScheduleGrid();
+}
+function renderSchedule(c){
+  const isAdmin = CURRENT_USER.role==='admin';
+  c.innerHTML = `
+    ${isAdmin?`
+    <div class="card">
+      <div class="card-head"><h3>Add class schedule</h3></div>
+      <div id="conflict-area"></div>
+      <div class="form-grid">
+        <div class="field"><label>Day</label><select id="sc-day">${DAYS.map(d=>`<option>${d}</option>`).join('')}</select></div>
+        <div class="field"><label>Time start</label><select id="sc-start">${TIME_SLOTS.map(t=>`<option value="${t.start}">${fmtM(t.start)}</option>`).join('')}</select></div>
+        <div class="field"><label>Time end</label><select id="sc-end">${TIME_SLOTS.map(t=>`<option value="${t.end}">${fmtM(t.end)}</option>`).join('')}</select></div>
+        ${sectionFieldHtml('sc')}${subjectFieldHtml('sc')}
+        <div class="field"><label>Room</label><select id="sc-room">${roomOptionsHtml()}</select></div>
+        <div class="field"><label>Instructor</label><select id="sc-instr">${instructorOptionsHtml()}</select></div>
+      </div>
+      <button class="btn btn-primary" onclick="addSchedule()">Add to schedule</button>
+    </div>`:''}
+    <div class="card">
+      <div class="card-head"><h3>${isAdmin?'Class schedule':'My schedule'}</h3><span class="pill" id="sched-count"></span></div>
+      ${filterBarHtml(fgroup('Class', orgFilterHtml('sf')) + (isAdmin? fgroup('Instructor', instructorSelectHtml('sf-instr','Instructor','All instructors','paintScheduleGrid()')) : '') + fgroup('Room', roomSelectHtml('sf-room','Room','All rooms','paintScheduleGrid()')), 'resetScheduleFilters()')}
+      <div class="day-pills" id="sched-day-pills"></div>
+      <div id="sched-grid-wrap"></div>
+      <p class="note">${isAdmin? "Click an empty slot to add a class, or click a class to edit or delete it. Conflict detection checks room, instructor and section availability before anything is saved." : "This shows only the classes assigned to you. To check open rooms and time slots, use the Room Availability tab."}</p>
+    </div>`;
+  ORG_CB.sf=paintScheduleGrid; fillOrgFilter('sf','init');
+  if(isAdmin) refreshSubjectField('sc','');
+  paintSchedDayPills();
+  paintScheduleGrid();
+}
+function paintScheduleGrid(){
+  const isAdmin = CURRENT_USER.role==='admin';
+  const wrap = document.getElementById('sched-grid-wrap'); if(!wrap) return;
+  const f=scheduleFilterState();
+  const items=(isAdmin ? DB.schedules : DB.schedules.filter(s=>s.instructorId===CURRENT_USER.instructorId)).filter(s=>scheduleMatches(s,f));
+  const days = schedDayMode==='all' ? DAYS : [schedDayMode];
+  const show=['section','room','instructor'].filter(k=>!(k==='section'&&f.s)&&!(k==='room'&&f.room)&&!(k==='instructor'&&(f.instr||!isAdmin)));
+  setGridHtml(wrap, weekGridHtml(items,{editable:isAdmin, roomId:f.room||null, days, show}));
+  const cnt=document.getElementById('sched-count'); if(cnt) cnt.textContent=items.filter(s=>days.includes(s.day)).length+' class(es) shown';
+}
+
+/* ---- Room Availability ---- */
+let availState = { roomId:null, day:'all' };
+function resetAvailFilters(){ resetFilters(['af-level','af-loc'],paintAvailability); }
+function renderAvailability(c){
+  const isAdmin = CURRENT_USER.role==='admin';
+  c.innerHTML = `
+    <div class="card">
+      <h3>Choose a room</h3>
+      ${filterBarHtml(fgroup('Room', selHtml('af-level','Floor / level','All floors',levelFilterOpts(),'paintAvailability()')+selHtml('af-loc','Location','All locations',locationFilterOpts(),'paintAvailability()')),'resetAvailFilters()')}
+      <div class="room-cards-row" id="avail-room-cards"></div>
+      <div class="day-pills" id="avail-day-pills"></div>
+      <div class="avail-status-row" id="avail-status"></div>
+      <div id="avail-body"></div>
+      <p class="note">${isAdmin?'Click an empty slot to schedule this room, or click a class to edit or delete it.':'This view combines classes from every instructor so you can see exactly when a room is open.'}</p>
+    </div>`;
+  paintAvailability();
+}
+function selectAvailRoom(id){ availState.roomId=id; paintAvailability(); }
+function selectAvailDay(d){ availState.day=d; paintAvailability(); }
+function paintAvailability(){
+  const isAdmin = CURRENT_USER.role==='admin';
+  const cardsEl=document.getElementById('avail-room-cards'); if(!cardsEl) return;
+  const lv=fv('af-level'), lc=fv('af-loc');
+  const rooms=DB.rooms.filter(r=>(!lv||r.level===lv)&&(!lc||r.location===lc));
+  if(!rooms.some(r=>r.id===availState.roomId)) availState.roomId = rooms.length? rooms[0].id : null;
+  cardsEl.innerHTML = rooms.map(r=>`
+    <div class="room-card ${r.id===availState.roomId?'active':''}" onclick="selectAvailRoom(${r.id})">
+      <div class="rname">${esc(r.name)}</div><div class="rmeta">${esc(r.code)} · ${esc(levelLabel(r.level))} · Cap ${r.capacity}</div>
+    </div>`).join('') || '<p class="note">No rooms match these filters.</p>';
+  document.getElementById('avail-day-pills').innerHTML = ['all',...DAYS].map(d=>`<button class="day-pill ${d===availState.day?'active':''}" onclick="selectAvailDay('${d}')">${d==='all'?'Full Week':d}</button>`).join('');
+  const room=DB.rooms.find(r=>r.id===availState.roomId);
+  const statusEl=document.getElementById('avail-status'), body=document.getElementById('avail-body');
+  if(!room){ statusEl.innerHTML=''; body.innerHTML=''; return; }
+  const today=defaultWeekday(), now=new Date(), nowMin=now.getHours()*60+now.getMinutes();
+  const busyNow=DB.schedules.some(s=>s.roomId===room.id&&s.day===today&&nowMin>=s.start&&nowMin<s.end);
+  statusEl.innerHTML=`<span class="avail-status-dot ${busyNow?'busy':''}"></span><span>${esc(room.name)} is ${busyNow?'in use right now':'available right now'}</span>`;
+  const days=availState.day==='all'?DAYS:[availState.day];
+  setGridHtml(body, weekGridHtml(DB.schedules.filter(s=>s.roomId===room.id),{editable:isAdmin, roomId:room.id, days, show:['section','instructor']}));
+}
+
+/* ---- Add / Edit modal (admin) ---- */
+let schedModalEditId = null;
+function openScheduleModal(opts){
+  opts=opts||{}; schedModalEditId = opts.editId||null;
+  document.getElementById('sched-modal-conflict').innerHTML='';
+  document.getElementById('sm-ss').innerHTML = sectionFieldHtml('sm')+subjectFieldHtml('sm');
+  document.getElementById('sm-day').innerHTML = DAYS.map(d=>`<option>${d}</option>`).join('');
+  document.getElementById('sm-start').innerHTML = TIME_SLOTS.map(t=>`<option value="${t.start}">${fmtM(t.start)}</option>`).join('');
+  document.getElementById('sm-end').innerHTML = TIME_SLOTS.map(t=>`<option value="${t.end}">${fmtM(t.end)}</option>`).join('');
+  document.getElementById('sm-room').innerHTML = roomOptionsHtml();
+  document.getElementById('sm-instr').innerHTML = instructorOptionsHtml();
+  const del=document.getElementById('sm-delete-btn');
+  if(schedModalEditId){
+    const s=DB.schedules.find(x=>x.id===schedModalEditId); if(!s) return;
+    document.getElementById('sched-modal-title').textContent='Edit class schedule';
+    document.getElementById('sm-day').value=s.day; document.getElementById('sm-start').value=s.start; document.getElementById('sm-end').value=s.end;
+    document.getElementById('sm-section').value=s.sectionId||''; refreshSubjectField('sm', s.subject); document.getElementById('sm-room').value=s.roomId; document.getElementById('sm-instr').value=s.instructorId;
+    del.classList.remove('hidden');
+  } else {
+    document.getElementById('sched-modal-title').textContent='Add class schedule';
+    if(opts.sectionId) document.getElementById('sm-section').value=opts.sectionId;
+    refreshSubjectField('sm','');
+    if(opts.instructorId) document.getElementById('sm-instr').value=opts.instructorId;
+    if(opts.day) document.getElementById('sm-day').value=opts.day;
+    if(opts.start!==undefined) document.getElementById('sm-start').value=opts.start;
+    if(opts.end!==undefined) document.getElementById('sm-end').value=opts.end;
+    if(opts.roomId) document.getElementById('sm-room').value=opts.roomId;
+    del.classList.add('hidden');
+  }
+  document.getElementById('modal-schedule').classList.remove('hidden');
+}
+function closeSchedModal(){ document.getElementById('modal-schedule').classList.add('hidden'); schedModalEditId=null; }
+function refreshScheduleViews(){
+  if(currentView==='schedule') paintScheduleGrid();
+  else if(currentView==='availability') paintAvailability();
+  else if(currentView==='dashboard') renderView('dashboard');
+}
+function saveScheduleModal(){
+  const day=document.getElementById('sm-day').value, start=+document.getElementById('sm-start').value, end=+document.getElementById('sm-end').value;
+  const subject=getSubject('sm'); const sectionId=+document.getElementById('sm-section').value||null;
+  const roomId=+document.getElementById('sm-room').value, instructorId=+document.getElementById('sm-instr').value;
+  const area=document.getElementById('sched-modal-conflict'); area.innerHTML='';
+  if(!subject){ toast('Please enter a subject.','err'); return; }
+  if(end<=start){ toast('End time must be after start time.','err'); return; }
+  const conflicts=computeConflicts(day,start,end,roomId,instructorId,sectionId,schedModalEditId);
+  if(conflicts.length){
+    area.innerHTML=`<div class="conflict-box"><b>This schedule cannot be saved — conflict detected:</b>${conflicts.map(m=>'<div>'+m+'</div>').join('')}</div>`;
+    toast('Scheduling conflict detected. Not saved.','err'); return;
+  }
+  if(schedModalEditId){ Object.assign(DB.schedules.find(x=>x.id===schedModalEditId),{day,start,end,subject,roomId,instructorId,sectionId}); toast('Class schedule updated.','ok'); }
+  else { DB.schedules.push({id:nid('schedules'),day,start,end,subject,roomId,instructorId,sectionId}); toast('Class schedule added.','ok'); }
+  saveDB(DB); closeSchedModal(); refreshScheduleViews();
+}
+function deleteFromModal(){
+  if(!schedModalEditId) return;
+  DB.schedules=DB.schedules.filter(s=>s.id!==schedModalEditId);
+  saveDB(DB); closeSchedModal(); refreshScheduleViews(); toast('Schedule removed.');
+}
+
+/* ---- inline add form (Course Scheduling) ---- */
+function addSchedule(){
+  const day=document.getElementById('sc-day').value, start=+document.getElementById('sc-start').value, end=+document.getElementById('sc-end').value;
+  const subject=getSubject('sc'); const sectionId=+document.getElementById('sc-section').value||null;
+  const roomId=+document.getElementById('sc-room').value, instructorId=+document.getElementById('sc-instr').value;
+  const area=document.getElementById('conflict-area'); area.innerHTML='';
+  if(!subject){ toast('Please enter a subject.','err'); return; }
+  if(end<=start){ toast('End time must be after start time.','err'); return; }
+  const conflicts=computeConflicts(day,start,end,roomId,instructorId,sectionId,null);
+  if(conflicts.length){
+    area.innerHTML=`<div class="conflict-box"><b>This schedule cannot be saved — conflict detected:</b>${conflicts.map(m=>'<div>'+m+'</div>').join('')}</div>`;
+    toast('Scheduling conflict detected. Not saved.','err'); return;
+  }
+  DB.schedules.push({id:nid('schedules'), day, start, end, subject, roomId, instructorId, sectionId});
+  saveDB(DB); paintScheduleGrid(); toast('Class schedule added.','ok');
+  refreshSubjectField('sc','');
+}
+function delSchedule(id){ DB.schedules=DB.schedules.filter(s=>s.id!==id); saveDB(DB); refreshScheduleViews(); toast('Schedule removed.'); }
+
+/* ---- section + subject dropdowns (built from saved sections / curriculum) ---- */
+function sectionFieldHtml(p){
+  return `<div class="field"><label>Section</label><select id="${p}-section" onchange="refreshSubjectField('${p}')">
+    <option value="">— No section —</option>
+    ${sectionOptionsGrouped()}
+  </select></div>`;
+}
+function subjectFieldHtml(p){
+  return `<div class="field"><label>Subject</label><select id="${p}-subj" onchange="subjectChanged('${p}')"></select>
+    <input id="${p}-subj-txt" class="hidden" style="margin-top:8px" placeholder="Type subject name"></div>`;
+}
+function refreshSubjectField(p, keep){
+  const sel=document.getElementById(p+'-subj'), txt=document.getElementById(p+'-subj-txt'); if(!sel) return;
+  const wasOther = sel.value==='__other', typed=txt.value, prev=sel.value;
+  let list=DB.curriculum;
+  const sec=sectionById(+document.getElementById(p+'-section').value);
+  if(sec){
+    const pr=programById(sec.programId);
+    if(pr){ const byProg=list.filter(c=>c.programCode===pr.code); const byYear=byProg.filter(c=>c.level===sec.year); list = byYear.length?byYear:(byProg.length?byProg:list); }
+  }
+  sel.innerHTML = list.map(c=>`<option value="${esc(c.courseName)}">${esc(c.courseCode)} — ${esc(c.courseName)}</option>`).join('') + '<option value="__other">Other (type manually)…</option>';
+  const cur = keep!==undefined ? keep : (wasOther ? typed : null);
+  if(keep!==undefined && keep && list.some(c=>c.courseName===keep)) sel.value=keep;
+  else if(keep!==undefined && keep){ sel.value='__other'; txt.value=keep; }
+  else if(keep===undefined && wasOther){ sel.value='__other'; txt.value=typed; }
+  else if(keep===undefined){ if(list.some(c=>c.courseName===prev)) sel.value=prev; }
+  else if(!list.length){ sel.value='__other'; }
+  txt.classList.toggle('hidden', sel.value!=='__other');
+}
+function subjectChanged(p){
+  const sel=document.getElementById(p+'-subj'), txt=document.getElementById(p+'-subj-txt');
+  txt.classList.toggle('hidden', sel.value!=='__other'); if(sel.value==='__other') txt.focus();
+}
+function getSubject(p){
+  const sel=document.getElementById(p+'-subj'); if(!sel) return '';
+  return sel.value==='__other' ? document.getElementById(p+'-subj-txt').value.trim() : sel.value;
+}
+
+/* ================= INSTRUCTOR ================= */
+function renderInstructor(c){
+  c.innerHTML=`
+    <div class="card">
+      <div class="card-head"><h3>Add instructor</h3></div>
+      <div class="form-grid">
+        <div class="field"><label>First name</label><input id="in-first"></div>
+        <div class="field"><label>Middle name</label><input id="in-middle"></div>
+        <div class="field"><label>Last name</label><input id="in-last"></div>
+        <div class="field"><label>Course graduated</label><input id="in-grad" placeholder="BS Information Technology"></div>
+        <div class="field"><label>Employment type</label><select id="in-emp"><option>Full-time</option><option>Part-time</option></select></div>
+        <div class="field"><label>Department</label><select id="in-dept">${deptOptionsHtml()}</select></div>
+      </div>
+      <button class="btn btn-primary" onclick="addInstructor()">Add instructor</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Instructors</h3>
+        <div class="search-box">${svg('folder')}<input id="in-search" placeholder="Search instructor..." oninput="paintInstructor()"></div>
+      </div>
+      ${instructorFilterBar()}
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>First</th><th>Middle</th><th>Last</th><th>Course graduated</th><th>Employment</th><th>Department</th><th></th></tr></thead>
+        <tbody id="in-tbody"></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>Instructor load overview</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Instructor</th><th>Department</th><th>Assigned classes</th><th>Total hours / week</th></tr></thead>
+        <tbody id="load-tbody"></tbody>
+      </table></div>
+    </div>`;
+  paintInstructor(); paintInstructorLoad();
+}
+function paintInstructor(){
+  const q=(document.getElementById('in-search')?.value||'').toLowerCase();
+  const rows = DB.instructors.filter(instructorFilterPass).filter(i=> fullName(i).toLowerCase().includes(q) || deptName(i.deptId).toLowerCase().includes(q));
+  document.getElementById('in-tbody').innerHTML = rows.map(i=>`
+    <tr><td>${i.id}</td><td>${esc(i.first)}</td><td>${esc(i.middle||'')}</td><td>${esc(i.last)}</td><td>${esc(i.graduated)}</td>
+    <td><span class="tag ${i.employment==='Full-time'?'tag-green':'tag-gray'}">${i.employment}</span></td><td>${esc(deptName(i.deptId))}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="delInstructor(${i.id})">Delete</button></td></tr>
+  `).join('') || '<tr class="empty-row"><td colspan="8">No instructors found.</td></tr>';
+}
+function paintInstructorLoad(){
+  document.getElementById('load-tbody').innerHTML = DB.instructors.filter(instructorFilterPass).map(i=>{
+    const classes = DB.schedules.filter(s=>s.instructorId===i.id);
+    const mins = classes.reduce((a,s)=>a+(s.end-s.start),0);
+    return `<tr><td>${esc(fullName(i))}</td><td>${esc(deptName(i.deptId))}</td><td>${classes.length}</td><td>${(mins/60).toFixed(1)} hrs</td></tr>`;
+  }).join('') || '<tr class="empty-row"><td colspan="4">No instructors yet.</td></tr>';
+}
+function addInstructor(){
+  const first=document.getElementById('in-first').value.trim(), last=document.getElementById('in-last').value.trim();
+  const deptId=+document.getElementById('in-dept').value;
+  if(!first||!last){toast('First and last name are required.','err');return;}
+  if(!deptId){toast('Please add a department first (Departments tab).','err');return;}
+  DB.instructors.push({
+    id:nid('instructors'), first, middle:document.getElementById('in-middle').value.trim(), last,
+    graduated:document.getElementById('in-grad').value.trim()||'—', employment:document.getElementById('in-emp').value, deptId
+  });
+  saveDB(DB); paintInstructor(); paintInstructorLoad(); toast('Instructor added.','ok');
+  ['in-first','in-middle','in-last','in-grad'].forEach(id=>document.getElementById(id).value='');
+}
+function delInstructor(id){
+  if(DB.schedules.some(s=>s.instructorId===id)){ toast('This instructor still has scheduled classes. Remove those first.','err'); return; }
+  DB.instructors=DB.instructors.filter(i=>i.id!==id); saveDB(DB); paintInstructor(); paintInstructorLoad(); toast('Instructor removed.');
+}
+
+/* ================= ROOM ================= */
+function renderRoom(c){
+  c.innerHTML=`
+    <div class="card">
+      <div class="card-head"><h3>Add room</h3></div>
+      <div class="form-grid">
+        <div class="field"><label>Room code</label><input id="rm-code" placeholder="R-103"></div>
+        <div class="field"><label>Room name</label><input id="rm-name" placeholder="Computer Lab 3"></div>
+        <div class="field"><label>Location</label><input id="rm-loc" placeholder="2nd Floor, Main Bldg."></div>
+        <div class="field"><label>Level</label><select id="rm-level"><option value="1">Ground</option><option value="2">2nd Floor</option><option value="3">3rd Floor</option><option value="4">4th Floor</option></select></div>
+        <div class="field"><label>Capacity</label><input id="rm-cap" type="number" min="1" value="40"></div>
+      </div>
+      <button class="btn btn-primary" onclick="addRoom()">Add room</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Rooms</h3>
+        <div class="search-box">${svg('folder')}<input id="rm-search" placeholder="Search room..." oninput="paintRoom()"></div>
+      </div>
+      ${roomFilterBar()}
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Code</th><th>Name</th><th>Location</th><th>Level</th><th>Capacity</th><th></th></tr></thead>
+        <tbody id="rm-tbody"></tbody>
+      </table></div>
+    </div>`;
+  paintRoom();
+}
+function paintRoom(){
+  const q=(document.getElementById('rm-search')?.value||'').toLowerCase();
+  const rf=fv('rf-level'), rl=fv('rf-loc');
+  const rows=DB.rooms.filter(r=>(!rf||r.level===rf)&&(!rl||r.location===rl)&&(r.name.toLowerCase().includes(q)||r.code.toLowerCase().includes(q)));
+  document.getElementById('rm-tbody').innerHTML = rows.map(r=>`
+    <tr><td>${r.id}</td><td>${r.code}</td><td>${r.name}</td><td>${r.location}</td><td>${levelLabel(r.level)}</td><td>${r.capacity}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="delRoom(${r.id})">Delete</button></td></tr>
+  `).join('') || '<tr class="empty-row"><td colspan="7">No rooms found.</td></tr>';
+}
+function addRoom(){
+  const code=document.getElementById('rm-code').value.trim(), name=document.getElementById('rm-name').value.trim();
+  if(!code||!name){toast('Room code and name are required.','err');return;}
+  DB.rooms.push({id:nid('rooms'), code, name, location:document.getElementById('rm-loc').value.trim()||'—', level:document.getElementById('rm-level').value, capacity:+document.getElementById('rm-cap').value||0});
+  saveDB(DB); paintRoom(); toast('Room added.','ok');
+  ['rm-code','rm-name','rm-loc'].forEach(id=>document.getElementById(id).value='');
+}
+function delRoom(id){ DB.rooms=DB.rooms.filter(r=>r.id!==id); saveDB(DB); paintRoom(); toast('Room removed.'); }
+
+/* ================= REPORT (calendar style, by instructor / section / room) ================= */
+const REPORT_TYPES=[['instructor','By Instructor'],['section','By Section'],['room','By Room']];
+let reportType='instructor', reportFirst=true;
+function renderReport(c){
+  c.innerHTML=`
+    <div class="card no-print">
+      <div class="card-head"><h3>Report options</h3>
+        <div class="toolbar"><button class="btn btn-ghost btn-sm" onclick="printReport()">Print</button><button class="btn btn-primary btn-sm" onclick="exportPdf()">Export PDF</button></div></div>
+      <p class="note" style="margin:-6px 0 14px">Choose what the report is organised by, then narrow it down. Choosing "All" gives one calendar page per item, and items with no classes are left out.</p>
+      <div class="day-pills" id="rp-type-pills"></div>
+      <div id="rp-filters"></div>
+    </div>
+    <div id="rp-output"></div>`;
+  paintReportFilters(); paintReport();
+}
+function setReportType(t){ reportType=t; paintReportFilters(); paintReport(); }
+function paintReportFilters(){
+  document.getElementById('rp-type-pills').innerHTML = REPORT_TYPES.map(([v,l])=>`<button class="day-pill ${reportType===v?'active':''}" onclick="setReportType('${v}')">${l}</button>`).join('');
+  const box=document.getElementById('rp-filters');
+  if(reportType==='instructor'){
+    box.innerHTML=filterBarHtml(fgroup('Instructor', selHtml('rp-idept','Department','All departments',deptFilterOpts(),'fillReportInstructor();paintReport()')+`<div class="field"><label>Instructor</label><select id="rp-instr" onchange="paintReport()"></select></div>`),'reportFirst=false;paintReportFilters();paintReport()');
+    fillReportInstructor(reportFirst && CURRENT_USER.role!=='admin' ? CURRENT_USER.instructorId : 0);
+  } else if(reportType==='section'){
+    box.innerHTML=filterBarHtml(fgroup('Section', orgFilterHtml('rp')),'paintReportFilters();paintReport()');
+    ORG_CB.rp=paintReport; fillOrgFilter('rp','init');
+  } else {
+    box.innerHTML=filterBarHtml(fgroup('Room', selHtml('rp-rlevel','Floor / level','All floors',levelFilterOpts(),'fillReportRoom();paintReport()')+`<div class="field"><label>Room</label><select id="rp-room" onchange="paintReport()"></select></div>`),'paintReportFilters();paintReport()');
+    fillReportRoom();
+  }
+}
+function fillReportInstructor(selected){
+  const d=+fv('rp-idept')||0, el=document.getElementById('rp-instr'); if(!el) return;
+  el.innerHTML='<option value="">All instructors</option>'+DB.instructors.filter(i=>!d||i.deptId===d).map(i=>`<option value="${i.id}">${esc(fullName(i))}</option>`).join('');
+  if(selected) el.value=selected;
+}
+function fillReportRoom(){
+  const lv=fv('rp-rlevel'), el=document.getElementById('rp-room'); if(!el) return;
+  el.innerHTML='<option value="">All rooms</option>'+DB.rooms.filter(r=>!lv||r.level===lv).map(r=>`<option value="${r.id}">${esc(r.name)} (${esc(r.code)})</option>`).join('');
+}
+function getReportEntities(){
+  let list=[];
+  const hrs=items=>(items.reduce((a,s)=>a+(s.end-s.start),0)/60).toFixed(1)+' hrs/week';
+  if(reportType==='instructor'){
+    const sel=+fv('rp-instr')||0, d=+fv('rp-idept')||0;
+    list=DB.instructors.filter(i=>(!sel||i.id===sel)&&(!d||i.deptId===d)).map(i=>{
+      const items=DB.schedules.filter(s=>s.instructorId===i.id);
+      return {kind:'Instructor', title:fullName(i), meta:[deptName(i.deptId), i.employment, items.length+' class(es)', hrs(items)], items, show:['section','room']};
+    });
+  } else if(reportType==='section'){
+    const f=getOrgFilter('rp');
+    list=DB.sections.filter(s=>(!f.d||s.deptId===f.d)&&(!f.pr||s.programId===f.pr)&&(!f.s||s.id===f.s)).map(s=>{
+      const p=programById(s.programId), items=DB.schedules.filter(x=>x.sectionId===s.id);
+      return {kind:'Section', title:s.name, meta:[(p?p.code:'—')+' · '+deptName(s.deptId), s.year, s.students+' students', items.length+' class(es)'], items, show:['instructor','room']};
+    });
+  } else {
+    const lv=fv('rp-rlevel'), sel=+fv('rp-room')||0;
+    list=DB.rooms.filter(r=>(!lv||r.level===lv)&&(!sel||r.id===sel)).map(r=>{
+      const items=DB.schedules.filter(s=>s.roomId===r.id);
+      return {kind:'Room', title:r.name+' ('+r.code+')', meta:[r.location, levelLabel(r.level), 'Capacity '+r.capacity, items.length+' class(es)'], items, show:['section','instructor']};
+    });
+  }
+  return list.length>1 ? list.filter(e=>e.items.length) : list;
+}
+function paintReport(){
+  const out=document.getElementById('rp-output'); if(!out) return;
+  const ents=getReportEntities();
+  out.innerHTML = ents.map(e=>`
+    <div class="report-page card">
+      <div class="rp-head"><div class="rp-inst">College of Our Lady of Mercy of Pulilan Foundation, Inc.</div>
+        <h2>${e.kind} schedule — ${esc(e.title)}</h2>
+        <div class="rp-meta">${e.meta.map(esc).join(' · ')}</div></div>
+      ${weekGridHtml(e.items,{editable:false, full:true, show:e.show})}
+    </div>`).join('') || '<div class="card"><p class="note">No classes found for this selection.</p></div>';
+}
+function printReport(){
+  if(!getReportEntities().length){ toast('Nothing to print for this selection.','err'); return; }
+  window.print();
+}
+function exportPdf(){
+  const ents=getReportEntities();
+  if(!ents.length){ toast('No schedule data to export.','err'); return; }
+  if(!window.jspdf){ toast('PDF library did not load — check your internet connection.','err'); return; }
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  ents.forEach((e,i)=>{ if(i>0) doc.addPage(); drawCalendarPdf(doc,e); });
+  const slug=(reportType+'-'+(ents.length===1?ents[0].title:'all')).toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  doc.save('colmsched-'+slug+'.pdf'); toast('Report exported as PDF.','ok');
+}
+function drawCalendarPdf(doc,e){
+  const PW=297, PH=210, M=10, TW=18, HEAD=7, top=30;
+  const rh=(PH-M-top-HEAD)/TIME_SLOTS.length, dw=(PW-2*M-TW)/DAYS.length, gy=top+HEAD, gh=TIME_SLOTS.length*rh;
+  doc.setTextColor(93,111,102); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('COLLEGE OF OUR LADY OF MERCY OF PULILAN FOUNDATION, INC.', M, 11);
+  doc.setFont('helvetica','normal'); doc.text('Generated '+new Date().toLocaleString(), PW-M, 11, {align:'right'});
+  doc.setTextColor(14,26,21); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text(e.kind+' Schedule: '+e.title, M, 19);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(93,111,102);
+  doc.text(e.meta.join('   |   ').replace(/·/g,'-'), M, 25);
+  doc.setFillColor(22,100,56); doc.rect(M,top,PW-2*M,HEAD,'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  DAYS.forEach((d,i)=>doc.text(DAY_NAMES[d], M+TW+i*dw+dw/2, top+4.7, {align:'center'}));
+  doc.setDrawColor(222,228,223); doc.setLineWidth(0.15);
+  doc.setFont('helvetica','normal'); doc.setFontSize(5.5); doc.setTextColor(93,111,102);
+  TIME_SLOTS.forEach((t,i)=>{ const y=gy+i*rh; doc.line(M,y,PW-M,y); doc.text(fmtM(t.start), M+1, y+rh*0.64); });
+  doc.line(M,gy+gh,PW-M,gy+gh); doc.line(M,gy,M,gy+gh);
+  for(let i=0;i<=DAYS.length;i++){ const x=M+TW+i*dw; doc.line(x,gy,x,gy+gh); }
+  DAYS.forEach((d,di)=>{
+    layoutLanes(e.items.filter(s=>s.day===d)).forEach(({s,lane,lanes})=>{
+      const lw=dw/lanes, x=M+TW+di*dw+lane*lw+0.6, y=gy+(s.start-DAY_START)/30*rh+0.4, w=lw-1.2, h=(s.end-s.start)/30*rh-0.8;
+      doc.setFillColor(234,250,241); doc.rect(x,y,w,h,'F');
+      doc.setDrawColor(160,210,180); doc.rect(x,y,w,h,'S');
+      doc.setFillColor(28,133,72); doc.rect(x,y,0.9,h,'F');
+      const lines=[{t:s.subject,b:true}].concat(eventLines(s,e.show).map(t=>({t:t.replace(/·/g,'-'),b:false})));
+      let cy=y+2.5; const maxY=y+h-0.5;
+      lines.forEach(L=>{
+        doc.setFont('helvetica',L.b?'bold':'normal'); doc.setFontSize(L.b?6.2:5.6);
+        if(L.b) doc.setTextColor(15,61,41); else doc.setTextColor(70,85,78);
+        doc.splitTextToSize(String(L.t), w-2.4).forEach(w1=>{ if(cy<=maxY){ doc.text(w1,x+1.7,cy); cy+=2.5; } });
+      });
+    });
+  });
+}
+
+/* ================= boot ================= */
+document.getElementById('modal-form').addEventListener('keydown',e=>{
+  if(e.key==='Enter' && e.target.tagName!=='SELECT'){ e.preventDefault(); submitFormModal(); }
+  if(e.key==='Escape') closeFormModal();
+});
+tryRestoreSession();
+</script>
+</body>
+</html>
